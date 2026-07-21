@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  mobile    String?  @unique
+  password  String?
+  country   String?
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+  otps      Otp[]
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
+model Product {
+  id           String    @id @default(cuid())
+  name         String
+  description  String
+  images       String[]
+  price        Decimal
+  currency     String    @default("LKR")
+  itemPrefix   String    @unique
+  drawDate     DateTime
+  isActive     Boolean   @default(true)
+  totalItems   Int       @default(0)
+  soldItems    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       Order[]
+  coupons      Coupon[]
+  winners      Winner[]
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  productId     String
+  product       Product       @relation(fields: [productId], references: [id])
+  quantity      Int
+  status        OrderStatus   @default(PENDING)
+  total         Decimal
+  currency      String        @default("LKR")
+  paymentMethod PaymentMethod
+  paymentDetails Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  coupons       Coupon[]
+  bankTransfer  BankTransfer?
+  winner        Winner?
+}
+
+enum OrderStatus {
+  PENDING
+  PENDING_APPROVAL
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  ONLINE_PAYMENT
+}
+
+model Coupon {
+  id          String    @id @default(cuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  couponCode  String    @unique
+  qrCodeUrl   String?
+  createdAt   DateTime  @default(now())
+  winner      Winner?
+}
+
+model BankTransfer {
+  id           String              @id @default(cuid())
+  orderId      String              @unique
+  order        Order               @relation(fields: [orderId], references: [id])
+  receiptUrl   String
+  transactionId String
+  status       BankTransferStatus @default(PENDING)
+  adminNotes   String?
+  reviewedAt   DateTime?
+  reviewedBy   String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+enum BankTransferStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Winner {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  orderId     String    @unique
+  order       Order     @relation(fields: [orderId], references: [id])
+  couponId    String    @unique
+  coupon      Coupon    @relation(fields: [couponId], references: [id])
+  prize       String
+  announcedAt DateTime  @default(now())
+  notifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  code      String
+  type      OtpType
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+enum OtpType {
+  EMAIL
+  MOBILE
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  items     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                  String   @id @default(cuid())
+  logoUrl             String?
+  heroImageUrl        String?
+  heroTitle           String?
+  heroSubtitle        String?
+  noticeText          String?
+  noticeIsActive      Boolean  @default(false)
+  contactEmail        String?
+  contactPhone        String?
+  contactAddress      String?
+  socialLinks         Json?
+  aboutUs             String?
+  termsAndConditions  String?
+  privacyPolicy       String?
+  bankName            String?
+  bankAccountNumber   String?
+  bankAccountName     String?
+  bankBranch          String?
+  updatedAt           DateTime @updatedAt
+}
