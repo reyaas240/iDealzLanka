@@ -113,32 +113,84 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      // Handle OAuth sign in
+    async signIn({ user, account, profile }) {
+      // Handle OAuth sign in - manual account management
       if (account?.provider === 'google' || account?.provider === 'facebook' || account?.provider === 'apple') {
         // Check if user exists by email
         const existingUser = await prisma.user.findUnique({
-          where: { email: user.email as string }
+          where: { email: user.email as string },
+          include: { accounts: true }
         })
 
         if (existingUser) {
-          // Update user with OAuth data if needed
+          // Check if this OAuth account is already linked
+          const existingAccount = existingUser.accounts.find(
+            (acc: any) => acc.provider === account?.provider && acc.providerAccountId === account?.providerAccountId
+          )
+          
+          if (existingAccount) {
+            // Account already linked
+            user.id = existingUser.id
+            user.role = existingUser.role
+            return true
+          }
+          
+          // User exists but this OAuth account is not linked
+          // Link the OAuth account to the existing user
+          await prisma.account.create({
+            data: {
+              userId: existingUser.id,
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              refresh_token: account.refresh_token,
+              access_token: account.access_token,
+              expires_at: account.expires_at,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+              session_state: account.session_state,
+            }
+          })
+          
+          // Set country if not set
+          if (!existingUser.country) {
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { country: "Sri Lanka" }
+            })
+          }
+          
           user.id = existingUser.id
           user.role = existingUser.role
           return true
         }
 
-        // New user - create with country set to Sri Lanka
+        // New user - create user and account
         const newUser = await prisma.user.create({
           data: {
             email: user.email as string,
             name: user.name || 'User',
             image: user.image || null,
             country: "Sri Lanka",
-            role: 'CUSTOMER'
+            role: 'CUSTOMER',
+            accounts: {
+              create: {
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                refresh_token: account.refresh_token,
+                access_token: account.access_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state,
+              }
+            }
           }
         })
-
+        
         user.id = newUser.id
         user.role = newUser.role
         return true
