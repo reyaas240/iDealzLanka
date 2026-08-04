@@ -149,10 +149,14 @@ export const authOptions: NextAuthOptions = {
       return true
     },
     async redirect({ url, baseUrl }) {
+      // If the user is coming from OAuth sign-in, redirect to dashboard
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/dashboard`
+      }
       // Redirect based on user role after sign in
       if (url.startsWith("/")) return url
       if (url.startsWith(baseUrl)) return url
-      return baseUrl
+      return `${baseUrl}/dashboard`
     },
     async jwt({ token, user, account }) {
       if (user) {
