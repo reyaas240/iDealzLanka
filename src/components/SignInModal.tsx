@@ -31,8 +31,11 @@ export default function SignInModal({ isOpen, onClose, onSwitchToSignUp, onSignI
     try {
       const response = await fetch('/api/oauth-settings')
       const data = await response.json()
+      console.log('OAuth settings fetched:', data)
       if (data.settings) {
         setOAuthSettings(data.settings)
+      } else {
+        console.log('No OAuth settings found')
       }
     } catch (error) {
       console.error('Failed to fetch OAuth settings:', error)
