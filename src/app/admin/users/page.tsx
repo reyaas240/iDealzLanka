@@ -6,9 +6,16 @@ import AdminHeader from "@/components/AdminHeader"
 import UserManagement from "./UserManagement"
 
 async function getUsers() {
-  return prisma.user.findMany({
+  const users = await prisma.user.findMany({
     orderBy: { createdAt: 'desc' }
   })
+  
+  return users.map(user => ({
+    ...user,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+    emailVerified: user.emailVerified?.toISOString() || null
+  }))
 }
 
 export default async function AdminUsers() {
