@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       where: { userId: (session.user as any).id }
     })
 
-    return NextResponse.json({ accounts })
+    return NextResponse.json(accounts)
   } catch (error) {
     console.error("Accounts fetch error:", error)
     return NextResponse.json(
