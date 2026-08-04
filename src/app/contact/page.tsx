@@ -2,8 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Header from '@/components/Header'
+import Logo from '@/components/Logo'
+import { useSession } from 'next-auth/react'
 
 export default function ContactPage() {
+  const { data: session, status } = useSession()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,73 +30,59 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">iDealzSrilanka</Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">Products</Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition">About</Link>
-            <Link href="/contact" className="text-blue-600 font-medium">Contact</Link>
-          </nav>
-          <div className="flex gap-4">
-            <Link href="/auth/signin" className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">Sign In</Link>
-            <Link href="/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign Up</Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
 
       {/* Contact Content */}
       <section className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">Contact Us</h1>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">Contact Us</h1>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           {/* Contact Information */}
           <div className="space-y-8">
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Get in Touch</h2>
-              <p className="text-gray-600 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">Get in Touch</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
                 Have questions about our products, orders, or draw campaigns? We're here to help. 
                 Reach out to us and we'll get back to you as soon as possible.
               </p>
 
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <span className="text-2xl">📧</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">info@idealsrilanka.com</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
+                    <p className="text-gray-600 dark:text-gray-300">info@idealsrilanka.com</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <span className="text-2xl">📞</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                    <p className="text-gray-600">+94 11 123 4567</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
+                    <p className="text-gray-600 dark:text-gray-300">+94 11 123 4567</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
                     <span className="text-2xl">📍</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Address</h3>
-                    <p className="text-gray-600">Colombo, Sri Lanka</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Address</h3>
+                    <p className="text-gray-600 dark:text-gray-300">Colombo, Sri Lanka</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Business Hours</h2>
-              <div className="space-y-3 text-gray-600">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">Business Hours</h2>
+              <div className="space-y-3 text-gray-600 dark:text-gray-300">
                 <div className="flex justify-between">
                   <span>Monday - Friday</span>
                   <span className="font-semibold">9:00 AM - 6:00 PM</span>
@@ -110,17 +100,17 @@ export default function ContactPage() {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Send us a Message</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">Send us a Message</h2>
 
             {submitted ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
                 <div className="text-4xl mb-3">✅</div>
-                <h3 className="text-lg font-semibold text-green-900 mb-2">Message Sent!</h3>
-                <p className="text-green-800">Thank you for contacting us. We'll get back to you soon.</p>
+                <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">Message Sent!</h3>
+                <p className="text-green-800 dark:text-green-300">Thank you for contacting us. We'll get back to you soon.</p>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="mt-4 text-green-700 hover:text-green-800 font-medium"
+                  className="mt-4 text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium"
                 >
                   Send another message
                 </button>
@@ -128,7 +118,7 @@ export default function ContactPage() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Name *
                   </label>
                   <input
@@ -136,13 +126,13 @@ export default function ContactPage() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Your name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email *
                   </label>
                   <input
@@ -150,13 +140,13 @@ export default function ContactPage() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="your@email.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Subject *
                   </label>
                   <input
@@ -164,13 +154,13 @@ export default function ContactPage() {
                     required
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="How can we help?"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Message *
                   </label>
                   <textarea
@@ -178,7 +168,7 @@ export default function ContactPage() {
                     rows={5}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none dark:bg-gray-700 dark:text-white"
                     placeholder="Your message..."
                   />
                 </div>
@@ -201,7 +191,7 @@ export default function ContactPage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">iDealzSrilanka</h3>
+              <Logo showText={true} asLink={false} className="mb-4" />
               <p className="text-gray-400">Support charity, win prizes, make a difference.</p>
             </div>
             <div>

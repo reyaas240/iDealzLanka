@@ -7,6 +7,15 @@ export async function GET(request: NextRequest) {
     
     if (!settings) {
       return NextResponse.json({ 
+        logoUrl: null,
+        heroImageUrl: null,
+        heroTitle: null,
+        heroSubtitle: null,
+        noticeText: null,
+        noticeIsActive: false,
+        contactEmail: null,
+        contactPhone: null,
+        contactAddress: null,
         bankName: null,
         bankAccountNumber: null,
         bankAccountName: null,
@@ -15,6 +24,15 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
+      logoUrl: settings.logoUrl,
+      heroImageUrl: settings.heroImageUrl,
+      heroTitle: settings.heroTitle,
+      heroSubtitle: settings.heroSubtitle,
+      noticeText: settings.noticeText,
+      noticeIsActive: settings.noticeIsActive,
+      contactEmail: settings.contactEmail,
+      contactPhone: settings.contactPhone,
+      contactAddress: settings.contactAddress,
       bankName: settings.bankName,
       bankAccountNumber: settings.bankAccountNumber,
       bankAccountName: settings.bankAccountName,

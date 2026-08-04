@@ -6,9 +6,10 @@ import { sendWinnerNotificationEmail } from "@/lib/email"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
     
     if (!session || (session.user as any).role !== "ADMIN") {
@@ -30,13 +31,21 @@ export async function POST(
 
     // Get product
     const product = await prisma.product.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!product) {
       return NextResponse.json(
         { error: "Product not found" },
         { status: 404 }
+      )
+    }
+
+    // Check if product is closed (only closed products can have draws)
+    if (product.status !== 'CLOSED') {
+      return NextResponse.json(
+        { error: "Product must be closed before selecting winners" },
+        { status: 400 }
       )
     }
 
@@ -60,7 +69,7 @@ export async function POST(
     }
 
     // Check if coupon already has a winner
-    if (coupon.productId !== params.id) {
+    if (coupon.productId !== id) {
       return NextResponse.json(
         { error: "Coupon does not belong to this product" },
         { status: 400 }
@@ -70,7 +79,7 @@ export async function POST(
     // Create winner record
     const winner = await prisma.winner.create({
       data: {
-        productId: params.id,
+        productId: id,
         orderId: coupon.orderId,
         couponId: coupon.id,
         prize

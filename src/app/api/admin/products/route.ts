@@ -15,9 +15,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, description, price, currency, totalItems, itemPrefix, drawDate, images, isActive } = body
+    const { name, shortDescription, description, price, currency, totalItems, itemPrefix, drawDate, images, isActive, status } = body
 
-    if (!name || !description || !price || !totalItems || !drawDate) {
+    if (!name || !shortDescription || !description || !price || !totalItems || !drawDate) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     const product = await prisma.product.create({
       data: {
         name,
+        shortDescription,
         description,
         price,
         currency: currency || "LKR",
@@ -35,7 +36,8 @@ export async function POST(request: NextRequest) {
         itemPrefix: itemPrefix || name.substring(0, 3).toUpperCase(),
         drawDate: new Date(drawDate),
         images: images || [],
-        isActive: isActive !== false
+        isActive: isActive !== false,
+        status: status || 'ACTIVE'
       }
     })
 

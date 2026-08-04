@@ -1,6 +1,23 @@
 import { Resend } from "resend"
+import { prisma } from "@/lib/db"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resend: Resend | null = null
+
+function getResendClient() {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
+
+async function getLogoUrl(): Promise<string | null> {
+  try {
+    const settings = await prisma.siteSettings.findFirst()
+    return settings?.logoUrl || null
+  } catch {
+    return null
+  }
+}
 
 export async function sendOrderConfirmationEmail(
   email: string,
@@ -9,8 +26,15 @@ export async function sendOrderConfirmationEmail(
 ) {
   try {
     const { order, product, coupons } = orderDetails
+    const logoUrl = await getLogoUrl()
     
-    await resend.emails.send({
+    const client = getResendClient()
+    if (!client) {
+      console.warn('Resend API key not configured, skipping email')
+      return
+    }
+    
+    await client.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "noreply@idealsrilanka.com",
       to: email,
       subject: includeCoupons 
@@ -18,8 +42,14 @@ export async function sendOrderConfirmationEmail(
         : "Order Received - Awaiting Payment Approval",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563eb;">iDealzSrilanka</h1>
-          <h2 style="color: #1e40af;">Order Confirmation</h2>
+          ${logoUrl ? `
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${logoUrl}" alt="iDealzSrilanka Logo" style="max-height: 60px; width: auto;" />
+            </div>
+          ` : `
+            <h1 style="color: #2563eb; text-align: center;">iDealzSrilanka</h1>
+          `}
+          <h2 style="color: #1e40af; text-align: center;">Order Confirmation</h2>
           
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <p><strong>Order ID:</strong> ${order.id.slice(0, 8)}...</p>
@@ -64,14 +94,27 @@ export async function sendWinnerNotificationEmail(
 ) {
   try {
     const { product, coupon, prize } = winnerDetails
+    const logoUrl = await getLogoUrl()
     
-    await resend.emails.send({
+    const client = getResendClient()
+    if (!client) {
+      console.warn('Resend API key not configured, skipping email')
+      return
+    }
+    
+    await client.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "noreply@idealsrilanka.com",
       to: email,
       subject: "🎉 Congratulations! You're a Winner!",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563eb;">iDealzSrilanka</h1>
+          ${logoUrl ? `
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${logoUrl}" alt="iDealzSrilanka Logo" style="max-height: 60px; width: auto;" />
+            </div>
+          ` : `
+            <h1 style="color: #2563eb; text-align: center;">iDealzSrilanka</h1>
+          `}
           
           <div style="background: #dbeafe; padding: 30px; border-radius: 8px; margin: 20px 0; text-align: center;">
             <div style="font-size: 60px; margin-bottom: 10px;">🎉</div>
@@ -103,13 +146,27 @@ export async function sendWinnerNotificationEmail(
 
 export async function sendOTPEmail(email: string, code: string): Promise<void> {
   try {
-    await resend.emails.send({
+    const logoUrl = await getLogoUrl()
+    
+    const client = getResendClient()
+    if (!client) {
+      console.warn('Resend API key not configured, skipping email')
+      return
+    }
+    
+    await client.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "noreply@idealsrilanka.com",
       to: email,
       subject: "Your Verification Code",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563eb;">iDealzSrilanka</h1>
+          ${logoUrl ? `
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${logoUrl}" alt="iDealzSrilanka Logo" style="max-height: 60px; width: auto;" />
+            </div>
+          ` : `
+            <h1 style="color: #2563eb; text-align: center;">iDealzSrilanka</h1>
+          `}
           <h2 style="color: #1e40af;">Your Verification Code</h2>
           
           <div style="background: #f3f4f6; padding: 30px; border-radius: 8px; margin: 20px 0; text-align: center;">

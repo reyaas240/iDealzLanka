@@ -10,8 +10,9 @@ async function getProduct(id: string) {
   return product
 }
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = await getProduct(params.id)
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const product = await getProduct(id)
 
   if (!product) {
     notFound()
@@ -20,5 +21,11 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   const availableItems = product.totalItems - product.soldItems
   const isSoldOut = availableItems <= 0
 
-  return <ProductDetailClient product={product} availableItems={availableItems} isSoldOut={isSoldOut} />
+  // Convert Decimal to number for client component
+  const serializedProduct = {
+    ...product,
+    price: Number(product.price)
+  }
+
+  return <ProductDetailClient product={serializedProduct} availableItems={availableItems} isSoldOut={isSoldOut} />
 }

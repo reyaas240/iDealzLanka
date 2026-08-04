@@ -4,30 +4,76 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { generateCouponsForOrder } from "@/lib/qrcode"
 import { sendOrderConfirmationEmail } from "@/lib/email"
-import { writeFile } from "fs/promises"
+import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
+import { existsSync } from "fs"
 import { put } from "@vercel/blob"
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { userId: (session.user as any).id },
+      include: {
+        product: true,
+        coupons: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    return NextResponse.json(orders)
+  } catch (error) {
+    console.error("Get orders error:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch orders" },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Starting order creation...')
     const formData = await request.formData()
+    console.log('FormData received')
+    
     const name = formData.get("name") as string
     const email = formData.get("email") as string
     const mobile = formData.get("mobile") as string
     const country = formData.get("country") as string
     const transactionId = formData.get("transactionId") as string
     const receipt = formData.get("receipt") as File
+    const skipPayment = formData.get("skipPayment") === "true"
 
-    if (!name || !email || !mobile || !transactionId || !receipt) {
+    console.log('Form data extracted:', { name, email, mobile, transactionId, skipPayment })
+
+    if (!name || !email || !mobile) {
+      console.log('Missing required fields')
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       )
     }
 
+    if (!skipPayment && (!transactionId || !receipt)) {
+      console.log('Missing payment details')
+      return NextResponse.json(
+        { error: "Transaction ID and receipt are required when not skipping payment" },
+        { status: 400 }
+      )
+    }
+
     // Get cart items
     const sessionId = request.cookies.get("cartSessionId")?.value
+    console.log('Cart session ID:', sessionId)
+    
     if (!sessionId) {
+      console.log('No cart session found')
       return NextResponse.json(
         { error: "No cart found" },
         { status: 400 }
@@ -38,7 +84,10 @@ export async function POST(request: NextRequest) {
       where: { sessionId }
     })
 
+    console.log('Cart found:', cart)
+
     if (!cart || !cart.items || (cart.items as any[]).length === 0) {
+      console.log('Cart is empty')
       return NextResponse.json(
         { error: "Cart is empty" },
         { status: 400 }
@@ -46,28 +95,35 @@ export async function POST(request: NextRequest) {
     }
 
     const cartItems = cart.items as any[]
+    console.log('Cart items:', cartItems)
 
-    // Upload receipt
-    let receiptUrl: string
-    const timestamp = Date.now()
-    const filename = `receipt-${timestamp}-${receipt.name}`
+    // Upload receipt only if not skipping payment
+    let receiptUrl: string | null = null
+    if (!skipPayment && receipt) {
+      const timestamp = Date.now()
+      const filename = `receipt-${timestamp}-${receipt.name}`
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      // Use Vercel Blob
-      const blob = await put(filename, receipt, {
-        access: "public",
-      })
-      receiptUrl = blob.url
-    } else {
-      // Use local storage
-      const bytes = await receipt.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      const uploadDir = join(process.cwd(), "public", "uploads", "receipts")
-      const filepath = join(uploadDir, filename)
-      
-      // Create directory if it doesn't exist
-      await writeFile(filepath, buffer)
-      receiptUrl = `/uploads/receipts/${filename}`
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        // Use Vercel Blob
+        const blob = await put(filename, receipt, {
+          access: "public",
+        })
+        receiptUrl = blob.url
+      } else {
+        // Use local storage
+        const bytes = await receipt.arrayBuffer()
+        const buffer = Buffer.from(bytes)
+        const uploadDir = join(process.cwd(), "public", "uploads", "receipts")
+        const filepath = join(uploadDir, filename)
+        
+        // Create directory if it doesn't exist
+        if (!existsSync(uploadDir)) {
+          await mkdir(uploadDir, { recursive: true })
+        }
+        
+        await writeFile(filepath, buffer)
+        receiptUrl = `/uploads/receipts/${filename}`
+      }
     }
 
     // Find or create user
@@ -125,8 +181,8 @@ export async function POST(request: NextRequest) {
           total,
           currency: product.currency,
           paymentMethod: "BANK_TRANSFER",
-          paymentDetails: { transactionId },
-          status: "PENDING_APPROVAL"
+          paymentDetails: skipPayment ? {} : { transactionId },
+          status: skipPayment ? "PENDING_PAYMENT" : "PENDING_APPROVAL"
         },
         include: {
           user: true,
@@ -134,15 +190,17 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Create bank transfer record
-      await prisma.bankTransfer.create({
-        data: {
-          orderId: order.id,
-          receiptUrl,
-          transactionId,
-          status: "PENDING"
-        }
-      })
+      // Create bank transfer record only if not skipping payment
+      if (!skipPayment && receiptUrl && transactionId) {
+        await prisma.bankTransfer.create({
+          data: {
+            orderId: order.id,
+            receiptUrl,
+            transactionId,
+            status: "PENDING"
+          }
+        })
+      }
 
       // Update product sold items
       await prisma.product.update({
@@ -190,8 +248,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Create order error:", error)
+    console.error("Error details:", JSON.stringify(error, null, 2))
     return NextResponse.json(
-      { error: "Failed to create order" },
+      { error: error instanceof Error ? error.message : "Failed to create order" },
       { status: 500 }
     )
   }

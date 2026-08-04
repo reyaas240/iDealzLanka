@@ -30,23 +30,31 @@ enum UserRole {
   CUSTOMER
 }
 
+enum ProductStatus {
+  ACTIVE
+  CLOSED
+  COMPLETED
+}
+
 model Product {
-  id           String    @id @default(cuid())
-  name         String
-  description  String
-  images       String[]
-  price        Decimal
-  currency     String    @default("LKR")
-  itemPrefix   String    @unique
-  drawDate     DateTime
-  isActive     Boolean   @default(true)
-  totalItems   Int       @default(0)
-  soldItems    Int       @default(0)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  orders       Order[]
-  coupons      Coupon[]
-  winners      Winner[]
+  id              String        @id @default(cuid())
+  name            String
+  shortDescription String       @default("")
+  description     String
+  images          String[]
+  price           Decimal
+  currency        String        @default("LKR")
+  itemPrefix      String        @unique
+  drawDate        DateTime
+  isActive        Boolean       @default(true)
+  status          ProductStatus @default(ACTIVE)
+  totalItems      Int           @default(0)
+  soldItems       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  orders          Order[]
+  coupons         Coupon[]
+  winners         Winner[]
 }
 
 model Order {
@@ -70,6 +78,7 @@ model Order {
 
 enum OrderStatus {
   PENDING
+  PENDING_PAYMENT
   PENDING_APPROVAL
   APPROVED
   COMPLETED

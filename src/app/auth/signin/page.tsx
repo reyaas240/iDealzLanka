@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import Logo from "@/components/Logo"
 
 export default function SignInPage() {
   const router = useRouter()
@@ -27,7 +28,7 @@ export default function SignInPage() {
         throw new Error("Invalid email or password")
       }
 
-      // Redirect based on user role
+      // Get session to determine redirect
       const session = await fetch("/api/auth/session").then(res => res.json())
       if (session?.user?.role === "ADMIN") {
         router.push("/admin")
@@ -43,10 +44,10 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 dark:from-gray-900 to-white dark:to-gray-800 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-600 mb-2">iDealzSrilanka</h1>
+          <Logo showText={false} />
           <p className="text-gray-600">Sign in to your account</p>
         </div>
 
@@ -101,6 +102,11 @@ export default function SignInPage() {
             Don't have an account?{" "}
             <a href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
               Sign up
+            </a>
+          </p>
+          <p className="mt-4">
+            <a href="/auth/forgot-password" className="text-blue-600 hover:text-blue-700 text-sm">
+              Forgot your password?
             </a>
           </p>
         </div>

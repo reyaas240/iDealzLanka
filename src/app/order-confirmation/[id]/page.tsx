@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db"
 import { notFound } from "next/navigation"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import Link from "next/link"
+import Header from "@/components/Header"
+import Logo from "@/components/Logo"
 
 async function getOrder(id: string) {
   const order = await prisma.order.findUnique({
@@ -14,38 +18,25 @@ async function getOrder(id: string) {
   return order
 }
 
-export default async function OrderConfirmationPage({ params }: { params: { id: string } }) {
-  const order = await getOrder(params.id)
+export default async function OrderConfirmationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const order = await getOrder(id)
 
   if (!order) {
     notFound()
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">iDealzSrilanka</Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">Products</Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition">About</Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition">Contact</Link>
-          </nav>
-          <div className="flex gap-4">
-            <Link href="/auth/signin" className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">Sign In</Link>
-            <Link href="/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign Up</Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
 
       {/* Order Confirmation */}
       <section className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
             <div className="text-6xl mb-6">✅</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Order Placed Successfully!</h1>
-            <p className="text-gray-600 mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Order Placed Successfully!</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
               Thank you for your order. Your order has been received and is pending approval.
             </p>
 
@@ -77,8 +68,16 @@ export default async function OrderConfirmationPage({ params }: { params: { id: 
                   <span className="font-semibold">{order.bankTransfer?.transactionId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className="font-semibold text-yellow-600">Pending Approval</span>
+                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                  <span className={`font-semibold ${
+                    order.status === 'COMPLETED' ? 'text-green-600 dark:text-green-400' :
+                    order.status === 'APPROVED' ? 'text-green-600 dark:text-green-400' :
+                    order.status === 'PENDING_APPROVAL' ? 'text-yellow-600 dark:text-yellow-400' :
+                    order.status === 'CANCELLED' ? 'text-red-600 dark:text-red-400' :
+                    'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    {order.status.replace('_', ' ')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -116,7 +115,7 @@ export default async function OrderConfirmationPage({ params }: { params: { id: 
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">iDealzSrilanka</h3>
+              <Logo showText={true} asLink={false} className="mb-4" />
               <p className="text-gray-400">Support charity, win prizes, make a difference.</p>
             </div>
             <div>

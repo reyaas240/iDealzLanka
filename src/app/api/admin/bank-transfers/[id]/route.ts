@@ -7,9 +7,10 @@ import { sendOrderConfirmationEmail } from "@/lib/email"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
     
     if (!session || (session.user as any).role !== "ADMIN") {
@@ -30,7 +31,7 @@ export async function PATCH(
     }
 
     const bankTransfer = await prisma.bankTransfer.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         order: {
           include: {
@@ -50,7 +51,7 @@ export async function PATCH(
 
     // Update bank transfer status
     const updatedBankTransfer = await prisma.bankTransfer.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status,
         adminNotes,

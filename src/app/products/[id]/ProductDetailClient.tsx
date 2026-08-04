@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Header from '@/components/Header'
+import Logo from '@/components/Logo'
 
 interface ProductDetailClientProps {
   product: any
@@ -13,6 +15,8 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
   const [quantity, setQuantity] = useState(1)
   const [addingToCart, setAddingToCart] = useState(false)
   const [addedToCart, setAddedToCart] = useState(false)
+
+  const isAvailableForPurchase = product.status === 'ACTIVE' && !isSoldOut
 
   const handleAddToCart = async () => {
     setAddingToCart(true)
@@ -43,33 +47,19 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">iDealzSrilanka</Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">Products</Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition">About</Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition">Contact</Link>
-          </nav>
-          <div className="flex gap-4">
-            <Link href="/auth/signin" className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">Sign In</Link>
-            <Link href="/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign Up</Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header showCart={true} />
 
       {/* Product Detail */}
       <section className="container mx-auto px-4 py-12">
-        <Link href="/products" className="inline-block mb-6 text-blue-600 hover:text-blue-700 transition">
+        <Link href="/products" className="inline-block mb-6 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition">
           ← Back to Products
         </Link>
 
         <div className="grid md:grid-cols-2 gap-12">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
               {product.images && product.images.length > 0 ? (
                 <img
                   src={product.images[0]}
@@ -77,15 +67,15 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
                   className="w-full h-96 object-cover"
                 />
               ) : (
-                <div className="bg-gradient-to-br from-blue-100 to-blue-200 h-96 flex items-center justify-center">
-                  <span className="text-blue-400">Product Image</span>
+                <div className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-700 dark:to-gray-600 h-96 flex items-center justify-center">
+                  <span className="text-blue-400 dark:text-blue-300">Product Image</span>
                 </div>
               )}
             </div>
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
                 {product.images.slice(1).map((image: string, index: number) => (
-                  <div key={index} className="bg-white rounded-lg shadow overflow-hidden">
+                  <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
                     <img
                       src={image}
                       alt={`${product.name} ${index + 2}`}
@@ -99,16 +89,28 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
 
           {/* Product Info */}
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
-            <p className="text-3xl font-bold text-blue-600 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
+              <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                product.status === 'ACTIVE' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                product.status === 'CLOSED' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+              }`}>
+                {product.status}
+              </span>
+            </div>
+            {product.shortDescription && (
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">{product.shortDescription}</p>
+            )}
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">
               {product.currency} {Number(product.price).toLocaleString()}
             </p>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Draw Date</p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Draw Date</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
                     {new Date(product.drawDate).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -117,27 +119,27 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Available Items</p>
-                  <p className={`font-semibold ${isSoldOut ? 'text-red-600' : 'text-gray-900'}`}>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Available Items</p>
+                  <p className={`font-semibold ${isSoldOut ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                     {availableItems} / {product.totalItems}
                   </p>
                 </div>
               </div>
               {isSoldOut && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                  <p className="text-red-800 font-medium">Sold Out</p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+                  <p className="text-red-800 dark:text-red-400 font-medium">Sold Out</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Description</h2>
-              <p className="text-gray-600 whitespace-pre-line">{product.description}</p>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Description</h2>
+              <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">{product.description}</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">How It Works</h2>
-              <ol className="list-decimal list-inside space-y-2 text-gray-600">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">How It Works</h2>
+              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
                 <li>Purchase this product to support charitable causes</li>
                 <li>Receive a unique QR coupon for each item purchased</li>
                 <li>Wait for the draw date to be announced</li>
@@ -146,37 +148,37 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
               </ol>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Quantity</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quantity</h2>
               <div className="flex items-center gap-4">
-                <div className="flex items-center border rounded-lg">
+                <div className="flex items-center border dark:border-gray-600 rounded-lg">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-2 hover:bg-gray-100 transition"
+                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   >
                     -
                   </button>
-                  <span className="px-6 py-2 border-x font-semibold">{quantity}</span>
+                  <span className="px-6 py-2 border-x dark:border-gray-600 font-semibold">{quantity}</span>
                   <button
                     onClick={() => setQuantity(Math.min(availableItems, quantity + 1))}
-                    className="px-4 py-2 hover:bg-gray-100 transition"
+                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   >
                     +
                   </button>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Total: {product.currency} {(Number(product.price) * quantity).toLocaleString()}
                 </p>
               </div>
             </div>
 
             <div className="flex gap-4">
-              {isSoldOut ? (
+              {!isAvailableForPurchase ? (
                 <button
                   disabled
                   className="flex-1 px-8 py-4 bg-gray-400 text-white rounded-lg cursor-not-allowed font-semibold"
                 >
-                  Sold Out
+                  {product.status !== 'ACTIVE' ? 'Not Available for Purchase' : 'Sold Out'}
                 </button>
               ) : addedToCart ? (
                 <button
@@ -196,7 +198,7 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
               )}
               <Link
                 href="/cart"
-                className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-semibold"
+                className="px-8 py-4 border-2 border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition font-semibold"
               >
                 View Cart
               </Link>
@@ -210,7 +212,7 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">iDealzSrilanka</h3>
+              <Logo showText={true} asLink={false} className="mb-4" />
               <p className="text-gray-400">Support charity, win prizes, make a difference.</p>
             </div>
             <div>

@@ -68,14 +68,4 @@ export async function generateCouponsForOrder(orderId: string): Promise<void> {
       }
     })
   }
-
-  // Update product sold items count
-  await prisma.product.update({
-    where: { id: order.product.id },
-    data: {
-      soldItems: {
-        increment: order.quantity
-      }
-    }
-  })
 }

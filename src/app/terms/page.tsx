@@ -1,45 +1,38 @@
+'use client'
+
 import Link from "next/link"
+import Header from "@/components/Header"
+import Logo from "@/components/Logo"
+import { useSession } from "next-auth/react"
 
 export default function TermsPage() {
+  const { data: session, status } = useSession()
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">iDealzSrilanka</Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">Products</Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition">About</Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition">Contact</Link>
-          </nav>
-          <div className="flex gap-4">
-            <Link href="/auth/signin" className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">Sign In</Link>
-            <Link href="/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign Up</Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
 
       {/* Terms Content */}
       <section className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms & Conditions</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">Terms & Conditions</h1>
 
-          <div className="bg-white rounded-xl shadow-lg p-8 space-y-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 space-y-8">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
-              <p className="text-gray-600 leading-relaxed">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">1. Introduction</h2>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 Welcome to iDealzSrilanka. By using our website and services, you agree to comply with and be bound by 
                 the following terms and conditions of use. Please read these terms carefully before using our services.
               </p>
             </div>
 
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Products and Pricing</h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">2. Products and Pricing</h2>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                 All products listed on our website are draw campaign products. Each purchase supports charitable causes 
                 and provides you with unique QR coupons for participation in prize draws.
               </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Prices are listed in Sri Lankan Rupees (LKR)</li>
                 <li>We reserve the right to modify product prices at any time</li>
                 <li>All sales are final unless otherwise stated</li>
@@ -138,7 +131,7 @@ export default function TermsPage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">iDealzSrilanka</h3>
+              <Logo showText={true} asLink={false} className="mb-4" />
               <p className="text-gray-400">Support charity, win prizes, make a difference.</p>
             </div>
             <div>

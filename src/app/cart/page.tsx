@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Header from '@/components/Header'
+import Logo from '@/components/Logo'
+import { useSession } from 'next-auth/react'
 
 interface CartItem {
   productId: string
@@ -13,6 +16,7 @@ interface CartItem {
 }
 
 export default function CartPage() {
+  const { data: session, status } = useSession()
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -98,39 +102,25 @@ export default function CartPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading cart...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-600 dark:text-gray-400">Loading cart...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">iDealzSrilanka</Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">Products</Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition">About</Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition">Contact</Link>
-          </nav>
-          <div className="flex gap-4">
-            <Link href="/auth/signin" className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">Sign In</Link>
-            <Link href="/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign Up</Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header showCart={true} />
 
       {/* Cart Content */}
       <section className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">Shopping Cart</h1>
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">🛒</div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your cart is empty</h2>
-            <p className="text-gray-600 mb-8">Looks like you haven't added any items yet.</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Your cart is empty</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">Looks like you haven't added any items yet.</p>
             <Link
               href="/products"
               className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
@@ -143,9 +133,9 @@ export default function CartPage() {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {items.map((item) => (
-                <div key={item.productId} className="bg-white rounded-xl shadow-lg p-6">
+                <div key={item.productId} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                   <div className="flex gap-4">
-                    <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                       {item.image ? (
                         <img
                           src={item.image}
@@ -153,42 +143,42 @@ export default function CartPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                           No Image
                         </div>
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.name}</h3>
-                      <p className="text-xl font-bold text-blue-600 mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{item.name}</h3>
+                      <p className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4">
                         {item.currency} {item.price.toLocaleString()}
                       </p>
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center border rounded-lg">
+                        <div className="flex items-center border dark:border-gray-600 rounded-lg">
                           <button
                             onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                            className="px-3 py-2 hover:bg-gray-100 transition"
+                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                           >
                             -
                           </button>
-                          <span className="px-4 py-2 border-x">{item.quantity}</span>
+                          <span className="px-4 py-2 border-x dark:border-gray-600">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                            className="px-3 py-2 hover:bg-gray-100 transition"
+                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                           >
                             +
                           </button>
                         </div>
                         <button
                           onClick={() => removeItem(item.productId)}
-                          className="text-red-600 hover:text-red-700 transition"
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition"
                         >
                           Remove
                         </button>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
                         {item.currency} {(item.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
@@ -199,20 +189,20 @@ export default function CartPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Order Summary</h2>
                 
                 <div className="space-y-4 mb-6">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Total Items</span>
                     <span>{totalItems}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Subtotal</span>
                     <span>LKR {total.toLocaleString()}</span>
                   </div>
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between text-xl font-bold text-gray-900">
+                  <div className="border-t dark:border-gray-700 pt-4">
+                    <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white">
                       <span>Total</span>
                       <span>LKR {total.toLocaleString()}</span>
                     </div>
@@ -228,14 +218,14 @@ export default function CartPage() {
 
                 <button
                   onClick={clearCart}
-                  className="block w-full px-6 py-3 border border-gray-300 text-gray-700 text-center rounded-lg hover:bg-gray-50 transition"
+                  className="block w-full px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-center rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                 >
                   Clear Cart
                 </button>
 
                 <Link
                   href="/products"
-                  className="block w-full px-6 py-3 text-blue-600 text-center hover:text-blue-700 transition mt-4"
+                  className="block w-full px-6 py-3 text-blue-600 dark:text-blue-400 text-center hover:text-blue-700 dark:hover:text-blue-300 transition mt-4"
                 >
                   Continue Shopping
                 </Link>
@@ -250,7 +240,7 @@ export default function CartPage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">iDealzSrilanka</h3>
+              <Logo showText={true} asLink={false} className="mb-4" />
               <p className="text-gray-400">Support charity, win prizes, make a difference.</p>
             </div>
             <div>

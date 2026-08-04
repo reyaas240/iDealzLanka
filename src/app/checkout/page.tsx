@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import imageCompression from 'browser-image-compression'
+import Header from '@/components/Header'
+import Logo from '@/components/Logo'
+import SignInModal from '@/components/SignInModal'
+import SignUpModal from '@/components/SignUpModal'
+import { useSession } from 'next-auth/react'
 
 interface CartItem {
   productId: string
@@ -16,9 +21,12 @@ interface CartItem {
 
 export default function CheckoutPage() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [showSignInModal, setShowSignInModal] = useState(false)
+  const [showSignUpModal, setShowSignUpModal] = useState(false)
   
   // User form state
   const [userForm, setUserForm] = useState({
@@ -33,15 +41,54 @@ export default function CheckoutPage() {
     transactionId: '',
     receipt: null as File | null
   })
+  const [skipPayment, setSkipPayment] = useState(false)
   
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [bankDetails, setBankDetails] = useState<any>(null)
 
+  const handleAuthSuccess = () => {
+    // Reload user data after successful authentication
+    if (status === 'authenticated' && session?.user) {
+      fetchUserProfile()
+    }
+  }
+
   useEffect(() => {
+    // Check if user is authenticated
+    if (status === 'unauthenticated') {
+      setShowSignInModal(true)
+      // Still fetch cart and bank details even when not authenticated
+      fetchCart()
+      fetchBankDetails()
+      return
+    }
+
+    if (status === 'authenticated' && session?.user) {
+      // Fetch user profile to pre-fill form
+      fetchUserProfile()
+    }
+
     fetchCart()
     fetchBankDetails()
-  }, [])
+  }, [status, session, router])
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile')
+      if (response.ok) {
+        const userData = await response.json()
+        setUserForm({
+          name: userData.name || '',
+          email: userData.email || '',
+          mobile: userData.mobile || '',
+          country: userData.country || 'Sri Lanka'
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }
 
   const fetchCart = async () => {
     try {
@@ -50,8 +97,6 @@ export default function CheckoutPage() {
       setItems(data.items || [])
     } catch (error) {
       console.error('Error fetching cart:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -64,6 +109,13 @@ export default function CheckoutPage() {
       console.error('Error fetching bank details:', error)
     }
   }
+
+  // Set loading to false after initial data fetch
+  useEffect(() => {
+    if (status !== 'loading') {
+      setLoading(false)
+    }
+  }, [status])
 
   const handleReceiptChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -109,11 +161,15 @@ export default function CheckoutPage() {
     } else if (!/^\+?[0-9]{10,15}$/.test(userForm.mobile.replace(/\s/g, ''))) {
       newErrors.mobile = 'Invalid mobile number'
     }
-    if (!bankTransfer.transactionId.trim()) {
-      newErrors.transactionId = 'Transaction ID is required'
-    }
-    if (!bankTransfer.receipt) {
-      newErrors.receipt = 'Receipt is required'
+
+    // Only validate bank transfer if not skipping payment
+    if (!skipPayment) {
+      if (!bankTransfer.transactionId.trim()) {
+        newErrors.transactionId = 'Transaction ID is required'
+      }
+      if (!bankTransfer.receipt) {
+        newErrors.receipt = 'Receipt is required'
+      }
     }
 
     setErrors(newErrors)
@@ -136,9 +192,13 @@ export default function CheckoutPage() {
       formData.append('email', userForm.email)
       formData.append('mobile', userForm.mobile)
       formData.append('country', userForm.country)
-      formData.append('transactionId', bankTransfer.transactionId)
-      if (bankTransfer.receipt) {
-        formData.append('receipt', bankTransfer.receipt)
+      formData.append('skipPayment', skipPayment.toString())
+      
+      if (!skipPayment) {
+        formData.append('transactionId', bankTransfer.transactionId)
+        if (bankTransfer.receipt) {
+          formData.append('receipt', bankTransfer.receipt)
+        }
       }
 
       const response = await fetch('/api/orders', {
@@ -146,12 +206,19 @@ export default function CheckoutPage() {
         body: formData
       })
 
+      const responseText = await response.text()
+      
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create order')
+        console.error('Order API error:', responseText)
+        try {
+          const error = JSON.parse(responseText)
+          throw new Error(error.error || 'Failed to create order')
+        } catch {
+          throw new Error('Failed to create order. Server returned non-JSON response.')
+        }
       }
 
-      const data = await response.json()
+      const data = JSON.parse(responseText)
       
       // Clear cart
       await fetch('/api/cart', { method: 'DELETE' })
@@ -171,18 +238,18 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading checkout...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-600 dark:text-gray-400">Loading checkout...</div>
       </div>
     )
   }
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-gray-600 mb-4">Your cart is empty</p>
-          <Link href="/products" className="text-blue-600 hover:text-blue-700">
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">Your cart is empty</p>
+          <Link href="/products" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
             Browse Products
           </Link>
         </div>
@@ -191,168 +258,182 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">iDealzSrilanka</Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">Products</Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition">About</Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition">Contact</Link>
-          </nav>
-          <div className="flex gap-4">
-            <Link href="/auth/signin" className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">Sign In</Link>
-            <Link href="/auth/signup" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sign Up</Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
 
       {/* Checkout Content */}
       <section className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Checkout</h1>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">Checkout</h1>
 
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* User Information */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Contact Information</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Contact Information</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Full Name *
                   </label>
                   <input
                     type="text"
                     value={userForm.name}
                     onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    disabled={status === 'authenticated'}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                      errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } ${status === 'authenticated' ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
                     placeholder="Enter your full name"
                   />
                   {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
+                  {status === 'authenticated' && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Contact information from your profile</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email Address *
                   </label>
                   <input
                     type="email"
                     value={userForm.email}
                     onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    disabled={status === 'authenticated'}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                      errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } ${status === 'authenticated' ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
                     placeholder="Enter your email"
                   />
                   {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Mobile Number *
                   </label>
                   <input
                     type="tel"
                     value={userForm.mobile}
                     onChange={(e) => setUserForm({ ...userForm, mobile: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.mobile ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    disabled={status === 'authenticated'}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                      errors.mobile ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } ${status === 'authenticated' ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
                     placeholder="+94 XX XXX XXXX"
                   />
                   {errors.mobile && <p className="text-red-600 text-sm mt-1">{errors.mobile}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Country
                   </label>
                   <input
                     type="text"
                     value={userForm.country}
                     onChange={(e) => setUserForm({ ...userForm, country: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={status === 'authenticated'}
+                    className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                      status === 'authenticated' ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
+                    }`}
                   />
                 </div>
               </div>
             </div>
 
             {/* Bank Transfer Information */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Bank Transfer Details</h2>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-blue-900 mb-2">Bank Account Information</h3>
-                {bankDetails && (bankDetails.bankName || bankDetails.bankAccountNumber) ? (
-                  <div className="text-sm text-blue-800 space-y-1">
-                    {bankDetails.bankName && <p><strong>Bank:</strong> {bankDetails.bankName}</p>}
-                    {bankDetails.bankAccountName && <p><strong>Account Name:</strong> {bankDetails.bankAccountName}</p>}
-                    {bankDetails.bankAccountNumber && <p><strong>Account Number:</strong> {bankDetails.bankAccountNumber}</p>}
-                    {bankDetails.bankBranch && <p><strong>Branch:</strong> {bankDetails.bankBranch}</p>}
-                  </div>
-                ) : (
-                  <p className="text-sm text-blue-700 italic">Bank account details not configured. Please contact admin.</p>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Transaction ID *
-                  </label>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Bank Transfer Details</h2>
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="text"
-                    value={bankTransfer.transactionId}
-                    onChange={(e) => setBankTransfer({ ...bankTransfer, transactionId: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.transactionId ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter transaction ID from bank receipt"
+                    type="checkbox"
+                    checked={skipPayment}
+                    onChange={(e) => setSkipPayment(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  {errors.transactionId && <p className="text-red-600 text-sm mt-1">{errors.transactionId}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Bank Receipt *
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition">
-                    <input
-                      type="file"
-                      id="receipt"
-                      accept="image/*"
-                      onChange={handleReceiptChange}
-                      className="hidden"
-                    />
-                    <label htmlFor="receipt" className="cursor-pointer">
-                      {receiptPreview ? (
-                        <img
-                          src={receiptPreview}
-                          alt="Receipt preview"
-                          className="max-h-48 mx-auto rounded"
-                        />
-                      ) : (
-                        <div>
-                          <div className="text-4xl mb-2">📄</div>
-                          <p className="text-gray-600">Click to upload receipt image</p>
-                          <p className="text-sm text-gray-400 mt-1">PNG, JPG up to 2MB (auto-compressed)</p>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                  {errors.receipt && <p className="text-red-600 text-sm mt-1">{errors.receipt}</p>}
-                </div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Skip for now</span>
+                </label>
               </div>
+              
+              {!skipPayment ? (
+                <>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                    <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Bank Account Details</h3>
+                    {bankDetails ? (
+                      <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                        <p><strong>Bank:</strong> {bankDetails.bankName || 'Not configured'}</p>
+                        <p><strong>Account Number:</strong> {bankDetails.accountNumber || 'Not configured'}</p>
+                        <p><strong>Account Name:</strong> {bankDetails.accountName || 'Not configured'}</p>
+                        <p><strong>Branch:</strong> {bankDetails.branch || 'Not configured'}</p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-blue-700 dark:text-blue-300 italic">Bank account details not configured. Please contact admin.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Transaction ID *
+                      </label>
+                      <input
+                        type="text"
+                        value={bankTransfer.transactionId}
+                        onChange={(e) => setBankTransfer({ ...bankTransfer, transactionId: e.target.value })}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                          errors.transactionId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="Enter transaction ID from bank receipt"
+                      />
+                      {errors.transactionId && <p className="text-red-600 text-sm mt-1">{errors.transactionId}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Bank Receipt *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-blue-500 dark:hover:border-blue-400 transition">
+                        <input
+                          type="file"
+                          id="receipt"
+                          accept="image/*"
+                          onChange={handleReceiptChange}
+                          className="hidden"
+                        />
+                        <label htmlFor="receipt" className="cursor-pointer">
+                          {receiptPreview ? (
+                            <img
+                              src={receiptPreview}
+                              alt="Receipt preview"
+                              className="max-h-48 mx-auto rounded"
+                            />
+                          ) : (
+                            <div>
+                              <div className="text-4xl mb-2">📄</div>
+                              <p className="text-gray-600 dark:text-gray-400">Click to upload receipt image</p>
+                              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">PNG, JPG up to 2MB (auto-compressed)</p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                      {errors.receipt && <p className="text-red-600 text-sm mt-1">{errors.receipt}</p>}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                  <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                    You can submit your bank transfer receipt later from your dashboard. Your order will be created in "Pending Payment" status.
+                  </p>
+                </div>
+              )}
             </div>
 
             {errors.submit && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800">{errors.submit}</p>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <p className="text-red-800 dark:text-red-400">{errors.submit}</p>
               </div>
             )}
 
@@ -367,13 +448,13 @@ export default function CheckoutPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Order Summary</h2>
               
               <div className="space-y-4 mb-6">
                 {items.map((item) => (
-                  <div key={item.productId} className="flex gap-4 pb-4 border-b">
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <div key={item.productId} className="flex gap-4 pb-4 border-b dark:border-gray-700">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                       {item.image ? (
                         <img
                           src={item.image}
@@ -381,17 +462,17 @@ export default function CheckoutPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">
                           No Image
                         </div>
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 text-sm">{item.name}</h3>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <h3 className="font-medium text-gray-900 dark:text-white text-sm">{item.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-gray-900 dark:text-white">
                         {item.currency} {(item.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
@@ -400,24 +481,24 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-4 mb-6">
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Total Items</span>
                   <span>{totalItems}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Subtotal</span>
                   <span>LKR {total.toLocaleString()}</span>
                 </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-xl font-bold text-gray-900">
+                <div className="border-t dark:border-gray-700 pt-4">
+                  <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white">
                     <span>Total</span>
                     <span>LKR {total.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-sm text-yellow-800">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 dark:text-yellow-300">
                   <strong>Note:</strong> Your order will be processed after bank transfer verification. You will receive your QR coupons via email once approved.
                 </p>
               </div>
@@ -426,12 +507,34 @@ export default function CheckoutPage() {
         </form>
       </section>
 
+      {/* Sign In Modal */}
+      <SignInModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+        onSwitchToSignUp={() => {
+          setShowSignInModal(false)
+          setShowSignUpModal(true)
+        }}
+        onSignInSuccess={handleAuthSuccess}
+      />
+
+      {/* Sign Up Modal */}
+      <SignUpModal
+        isOpen={showSignUpModal}
+        onClose={() => setShowSignUpModal(false)}
+        onSwitchToSignIn={() => {
+          setShowSignUpModal(false)
+          setShowSignInModal(true)
+        }}
+        onSignUpSuccess={handleAuthSuccess}
+      />
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12 mt-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">iDealzSrilanka</h3>
+              <Logo showText={true} asLink={false} className="mb-4" />
               <p className="text-gray-400">Support charity, win prizes, make a difference.</p>
             </div>
             <div>

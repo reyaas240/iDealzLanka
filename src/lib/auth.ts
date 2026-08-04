@@ -83,6 +83,16 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
   },
   callbacks: {
+    async signIn({ user }) {
+      // Allow sign in
+      return true
+    },
+    async redirect({ url, baseUrl }) {
+      // Redirect based on user role after sign in
+      if (url.startsWith("/")) return url
+      if (url.startsWith(baseUrl)) return url
+      return baseUrl
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
