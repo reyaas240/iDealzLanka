@@ -181,6 +181,17 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header showNav={false} />
 
+      {/* Missing Mobile Warning Banner */}
+      {user && !user.mobile && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800">
+          <div className="container mx-auto px-4 py-3">
+            <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+              ⚠️ Please add your mobile number to place orders and receive important notifications.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* User Navigation */}
       <nav className="bg-white dark:bg-gray-900 border-b dark:border-gray-700">
         <div className="container mx-auto px-4">
@@ -239,15 +250,16 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Mobile
+                  Mobile <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
                   value={formData.mobile}
                   onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  required
+                  placeholder="+94 7X XXX XXXX"
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required for placing orders and receiving notifications</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

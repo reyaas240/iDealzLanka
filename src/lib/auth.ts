@@ -129,8 +129,19 @@ export const authOptions: NextAuthOptions = {
           return true
         }
 
-        // New user will be created by PrismaAdapter
-        user.role = 'CUSTOMER'
+        // New user - create with country set to Sri Lanka
+        const newUser = await prisma.user.create({
+          data: {
+            email: user.email as string,
+            name: user.name || 'User',
+            image: user.image || null,
+            country: "Sri Lanka",
+            role: 'CUSTOMER'
+          }
+        })
+
+        user.id = newUser.id
+        user.role = newUser.role
         return true
       }
 

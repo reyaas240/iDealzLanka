@@ -39,6 +39,23 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('Starting order creation...')
+    const session = await getServerSession(authOptions)
+    
+    // Check if logged-in user has mobile number
+    if (session && session.user) {
+      const user = await prisma.user.findUnique({
+        where: { id: (session.user as any).id },
+        select: { mobile: true }
+      })
+      
+      if (!user?.mobile) {
+        return NextResponse.json(
+          { error: "Please add your mobile number in your profile before placing an order", requiresMobile: true },
+          { status: 400 }
+        )
+      }
+    }
+    
     const formData = await request.formData()
     console.log('FormData received')
     

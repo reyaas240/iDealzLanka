@@ -34,7 +34,7 @@ export default async function AdminDraws() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Draw Management</h1>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {draws.map((draw: any) => (
             <div key={draw.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">

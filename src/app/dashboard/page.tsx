@@ -23,6 +23,7 @@ export default function UserDashboard() {
   const [orders, setOrders] = useState<any[]>([])
   const [winnings, setWinnings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
@@ -44,8 +45,19 @@ export default function UserDashboard() {
       loadOrders()
       loadWinnings()
       fetchBankDetails()
+      fetchUserProfile()
     }
   }, [status])
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile')
+      const data = await response.json()
+      setUserProfile(data)
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }
 
   const fetchBankDetails = async () => {
     try {
@@ -138,6 +150,22 @@ export default function UserDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header showNav={false} />
+
+      {/* Missing Mobile Warning Banner */}
+      {userProfile && !userProfile.mobile && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                ⚠️ Please add your mobile number to place orders and receive important notifications.
+              </p>
+              <a href="/dashboard/profile" className="text-yellow-800 dark:text-yellow-200 hover:text-yellow-900 dark:hover:text-yellow-100 text-sm font-medium">
+                Add Mobile →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* User Navigation */}
       <nav className="bg-white dark:bg-gray-900 border-b dark:border-gray-700">
