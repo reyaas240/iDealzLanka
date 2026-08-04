@@ -35,7 +35,6 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
@@ -115,7 +114,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      // Handle OAuth sign in - let PrismaAdapter handle account creation
+      // Handle OAuth sign in
       if (account?.provider === 'google' || account?.provider === 'facebook' || account?.provider === 'apple') {
         // Check if user exists by email
         const existingUser = await prisma.user.findUnique({
@@ -149,13 +148,7 @@ export const authOptions: NextAuthOptions = {
       return true
     },
     async redirect({ url, baseUrl }) {
-      // If the user is coming from OAuth sign-in, redirect to dashboard
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        return `${baseUrl}/dashboard`
-      }
-      // Redirect based on user role after sign in
-      if (url.startsWith("/")) return url
-      if (url.startsWith(baseUrl)) return url
+      // Always redirect to dashboard after successful sign-in
       return `${baseUrl}/dashboard`
     },
     async jwt({ token, user, account }) {
