@@ -24,15 +24,15 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.signOut': 'Sign Out',
     
     // Home
-    'home.hero.title': 'Support Charity, Win Prizes',
-    'home.hero.subtitle': 'Purchase products to support charitable causes across Sri Lanka and get a chance to win amazing prizes.',
+    'home.hero.title': 'WIN AMAZING PRIZES!',
+    'home.hero.subtitle': 'Shop, Give back and Get rewarded.',
     'home.hero.cta': 'View Products',
     'home.featured.title': 'Featured Products',
     'home.noProducts': 'No products available yet. Check back soon!',
     'home.viewDetails': 'View Details',
     
     // Footer
-    'footer.tagline': 'Support charity, win prizes, make a difference.',
+    'footer.tagline': 'Shop, Give back and Get rewarded.',
     'footer.quickLinks': 'Quick Links',
     'footer.legal': 'Legal',
     'footer.rights': 'All rights reserved.',
@@ -78,15 +78,15 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.signOut': 'வெளியேறு',
     
     // Home
-    'home.hero.title': 'தொண்டு நிறுவனங்களுக்கு உதவுங்கள், பரிசுகள் வெல்லுங்கள்',
-    'home.hero.subtitle': 'இலங்கை முழுவதும் தொண்டு நிறுவனங்களுக்கு உதவ தயாரிப்புகளை வாங்கவும் மற்றும் அற்புதமான பரிசுகளை வெல்ல வாய்ப்பு பெறவும்.',
+    'home.hero.title': 'அற்புதமான பரிசுகளை வெல்லுங்கள்!',
+    'home.hero.subtitle': 'வாங்குங்கள், வழங்குங்கள், பரிசுகளைப் பெறுங்கள்.',
     'home.hero.cta': 'தயாரிப்புகளைப் பார்க்கவும்',
     'home.featured.title': 'சிறப்பு தயாரிப்புகள்',
     'home.noProducts': 'இன்னும் தயாரிப்புகள் இல்லை. பிறகு வாருங்கள்!',
     'home.viewDetails': 'விவரங்களைக் காண்க',
     
     // Footer
-    'footer.tagline': 'தொண்டுக்கு உதவுங்கள், பரிசுகள் வெல்லுங்கள், மாற்றத்தை உருவாக்குங்கள்.',
+    'footer.tagline': 'வாங்குங்கள், வழங்குங்கள், பரிசுகளைப் பெறுங்கள்.',
     'footer.quickLinks': 'விரைவு இணைப்புகள்',
     'footer.legal': 'சட்டம்',
     'footer.rights': 'அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
@@ -132,15 +132,15 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.signOut': 'ඉවත් වන්න',
     
     // Home
-    'home.hero.title': 'පරිත්යාග සඳහා උපකාර කරන්න, ත්යාග දිනාගන්න',
-    'home.hero.subtitle': 'ශ්රී ලංකාව පුරා පරිත්යාග සංවිධාන සඳහා උපකාර කිරීමට නිෂ්පාදන මිලදී ගන්න සහ අද්විත ත්යාග දිනා ගැනීමට අවස්ථාවක් ලබා ගන්න.',
+    'home.hero.title': 'විශිෂ්ට ත්‍යාග දිනාගන්න!',
+    'home.hero.subtitle': 'මිලදී ගන්න, නැවත ලබා දෙන්න, ත්‍යාග ලබන්න.',
     'home.hero.cta': 'නිෂ්පාදන බලන්න',
     'home.featured.title': 'විශේෂ නිෂ්පාදන',
     'home.noProducts': 'තවම නිෂ්පාදන නැත. පසුව පැමිණෙන්න!',
     'home.viewDetails': 'විස්තර බලන්න',
     
     // Footer
-    'footer.tagline': 'පරිත්යාග සඳහා උපකාර කරන්න, ත්යාග දිනාගන්න, වෙනසක් සිදු කරන්න.',
+    'footer.tagline': 'මිලදී ගන්න, නැවත ලබා දෙන්න, ත්‍යාග ලබන්න.',
     'footer.quickLinks': 'වේග සබැඳි',
     'footer.legal': 'නීති',
     'footer.rights': 'සියලු හිමිකම් සුරක්ෂිතයි.',
