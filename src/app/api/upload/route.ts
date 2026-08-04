@@ -16,17 +16,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if Vercel Blob is configured
+    // Try Vercel Blob first if configured
     if (process.env.BLOB_READ_WRITE_TOKEN) {
-      // Upload to Vercel Blob
-      const blob = await put(file.name, file, {
-        access: "public",
-      })
-      return NextResponse.json({ url: blob.url })
-    } 
+      try {
+        const blob = await put(file.name, file, {
+          access: "public",
+        })
+        return NextResponse.json({ url: blob.url })
+      } catch (blobError) {
+        console.error("Vercel Blob upload failed, trying local storage:", blobError)
+        // Fall through to local storage
+      }
+    }
     
-    // Local storage fallback (only works in development)
-    if (process.env.NODE_ENV === 'development') {
+    // Fallback to local storage
+    try {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
@@ -47,13 +51,13 @@ export async function POST(request: NextRequest) {
       // Return public URL
       const publicUrl = `/uploads/${filename}`
       return NextResponse.json({ url: publicUrl })
+    } catch (localError) {
+      console.error("Local storage upload failed:", localError)
+      return NextResponse.json(
+        { error: "Failed to upload file. Neither Vercel Blob nor local storage is available." },
+        { status: 500 }
+      )
     }
-
-    // Production without Vercel Blob configured
-    return NextResponse.json(
-      { error: "Storage not configured. Please set BLOB_READ_WRITE_TOKEN environment variable." },
-      { status: 500 }
-    )
   } catch (error) {
     console.error("Upload error:", error)
     return NextResponse.json(

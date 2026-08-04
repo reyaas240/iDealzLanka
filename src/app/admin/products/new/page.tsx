@@ -265,7 +265,7 @@ export default function NewProductPage() {
                   <img
                     src={url}
                     alt={`Product image ${index + 1}`}
-                    className="w-full aspect-square object-cover rounded-lg"
+                    className="w-full aspect-[5/4] object-cover rounded-lg"
                   />
                   <button
                     type="button"

@@ -93,7 +93,7 @@ export default function Home() {
             {products.map((product) => (
               <div key={product.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                 {product.images && product.images.length > 0 ? (
-                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 aspect-square flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 aspect-[5/4] flex items-center justify-center">
                     <img 
                       src={product.images[0]} 
                       alt={product.name}
@@ -101,7 +101,7 @@ export default function Home() {
                     />
                   </div>
                 ) : (
-                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 aspect-square flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 aspect-[5/4] flex items-center justify-center">
                     <span className="text-gray-400 dark:text-gray-500">Product Image</span>
                   </div>
                 )}
