@@ -33,7 +33,7 @@ export default async function ProductsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product: any) => (
               <div key={product.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
-                <div className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-700 dark:to-gray-600 h-48 flex items-center justify-center">
+                <div className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-700 dark:to-gray-600 aspect-square flex items-center justify-center">
                   {product.images && product.images.length > 0 ? (
                     <img 
                       src={product.images[0]} 

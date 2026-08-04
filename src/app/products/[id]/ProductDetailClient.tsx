@@ -64,10 +64,10 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
                 <img
                   src={product.images[0]}
                   alt={product.name}
-                  className="w-full h-96 object-cover"
+                  className="w-full aspect-square object-cover"
                 />
               ) : (
-                <div className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-700 dark:to-gray-600 h-96 flex items-center justify-center">
+                <div className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-700 dark:to-gray-600 aspect-square flex items-center justify-center">
                   <span className="text-blue-400 dark:text-blue-300">Product Image</span>
                 </div>
               )}
@@ -79,7 +79,7 @@ export default function ProductDetailClient({ product, availableItems, isSoldOut
                     <img
                       src={image}
                       alt={`${product.name} ${index + 2}`}
-                      className="w-full h-24 object-cover"
+                      className="w-full aspect-square object-cover"
                     />
                   </div>
                 ))}

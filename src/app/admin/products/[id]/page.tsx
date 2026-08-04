@@ -318,7 +318,7 @@ export default function EditProductPage() {
                   <img
                     src={url}
                     alt={`Product image ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
+                    className="w-full aspect-square object-cover rounded-lg"
                   />
                   <button
                     type="button"
