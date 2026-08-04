@@ -23,8 +23,10 @@ export async function POST(request: NextRequest) {
         access: "public",
       })
       return NextResponse.json({ url: blob.url })
-    } else {
-      // Upload to local public/uploads directory
+    } 
+    
+    // Local storage fallback (only works in development)
+    if (process.env.NODE_ENV === 'development') {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
@@ -46,6 +48,12 @@ export async function POST(request: NextRequest) {
       const publicUrl = `/uploads/${filename}`
       return NextResponse.json({ url: publicUrl })
     }
+
+    // Production without Vercel Blob configured
+    return NextResponse.json(
+      { error: "Storage not configured. Please set BLOB_READ_WRITE_TOKEN environment variable." },
+      { status: 500 }
+    )
   } catch (error) {
     console.error("Upload error:", error)
     return NextResponse.json(
