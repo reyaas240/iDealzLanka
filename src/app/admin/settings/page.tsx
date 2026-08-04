@@ -137,7 +137,19 @@ export default function AdminSettings() {
 
       {/* Settings Content */}
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <a href="/admin" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition">
+            ← Back to Admin Dashboard
+          </a>
+        </div>
+
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Site Settings</h1>
+
+        <div className="mb-6">
+          <a href="/admin/settings/oauth" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+            Configure OAuth Providers
+          </a>
+        </div>
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">

@@ -2,6 +2,9 @@ import { NextAuthOptions } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./db"
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
+import FacebookProvider from "next-auth/providers/facebook"
+import AppleProvider from "next-auth/providers/apple"
 import * as bcrypt from "bcryptjs"
 
 type UserRole = "ADMIN" | "STAFF" | "CUSTOMER"
@@ -10,6 +13,7 @@ declare module "next-auth" {
   interface User {
     id: string
     role: UserRole
+    image?: string | null
   }
   interface Session {
     user: {
@@ -17,6 +21,7 @@ declare module "next-auth" {
       role: UserRole
       name?: string | null
       email?: string | null
+      image?: string | null
     }
   }
 }
@@ -25,6 +30,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string
     role: UserRole
+    image?: string | null
   }
 }
 
@@ -74,7 +80,31 @@ export const authOptions: NextAuthOptions = {
         console.log("Authentication successful for user:", user.email)
         return user
       }
-    })
+    }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        authorization: {
+          params: {
+            prompt: "consent",
+            access_type: "offline"
+          }
+        }
+      })
+    ] : []),
+    ...(process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET ? [
+      FacebookProvider({
+        clientId: process.env.FACEBOOK_CLIENT_ID,
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET
+      })
+    ] : []),
+    ...(process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET ? [
+      AppleProvider({
+        clientId: process.env.APPLE_CLIENT_ID,
+        clientSecret: process.env.APPLE_CLIENT_SECRET
+      })
+    ] : [])
   ],
   session: {
     strategy: "jwt"
@@ -83,8 +113,27 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
   },
   callbacks: {
-    async signIn({ user }) {
-      // Allow sign in
+    async signIn({ user, account }) {
+      // Handle OAuth sign in - let PrismaAdapter handle account creation
+      if (account?.provider === 'google' || account?.provider === 'facebook' || account?.provider === 'apple') {
+        // Check if user exists by email
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email as string }
+        })
+
+        if (existingUser) {
+          // Update user with OAuth data if needed
+          user.id = existingUser.id
+          user.role = existingUser.role
+          return true
+        }
+
+        // New user will be created by PrismaAdapter
+        user.role = 'CUSTOMER'
+        return true
+      }
+
+      // Allow credentials sign in
       return true
     },
     async redirect({ url, baseUrl }) {
@@ -93,10 +142,11 @@ export const authOptions: NextAuthOptions = {
       if (url.startsWith(baseUrl)) return url
       return baseUrl
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
         token.role = user.role
+        if (user.image) token.image = user.image
       }
       return token
     },
@@ -104,6 +154,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id
         session.user.role = token.role
+        if (token.image) session.user.image = token.image
       }
       return session
     }

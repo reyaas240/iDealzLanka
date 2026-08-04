@@ -11,17 +11,21 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?  @unique
-  mobile    String?  @unique
-  password  String?
-  country   String?
-  role      UserRole @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[]
-  otps      Otp[]
+  id            String    @id @default(cuid())
+  name          String
+  email         String?   @unique
+  mobile        String?   @unique
+  password      String?
+  country       String?
+  role          UserRole  @default(CUSTOMER)
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
+  otps          Otp[]
+  accounts     Account[]
+  sessions      Session[]
 }
 
 enum UserRole {
@@ -180,4 +184,42 @@ model SiteSettings {
   bankAccountName     String?
   bankBranch          String?
   updatedAt           DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OAuthSettings {
+  id           String   @id @default(cuid())
+  provider     String   // GOOGLE, FACEBOOK, APPLE
+  isEnabled    Boolean  @default(false)
+  clientId     String?
+  clientSecret String?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([provider])
 }
