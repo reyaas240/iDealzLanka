@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db"
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,10 +17,12 @@ export async function DELETE(
       )
     }
 
+    const { id } = await params
+
     // Verify the account belongs to the user
     const account = await prisma.account.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: (session.user as any).id
       }
     })
@@ -49,7 +51,7 @@ export async function DELETE(
     }
 
     await prisma.account.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true })
