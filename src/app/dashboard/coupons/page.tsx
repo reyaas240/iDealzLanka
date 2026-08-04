@@ -61,6 +61,7 @@ export default async function UserCoupons() {
         <div className="container mx-auto px-4">
           <div className="flex gap-6 py-4">
             <a href="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">My Orders</a>
+            <a href="/dashboard/winnings" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">My Winnings</a>
             <a href="/dashboard/coupons" className="text-blue-600 dark:text-blue-400 font-medium">My Coupons</a>
             <a href="/dashboard/profile" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Profile</a>
           </div>
