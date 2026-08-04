@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { redirect } from "next/navigation"
 import Header from "@/components/Header"
 import Logo from "@/components/Logo"
 
@@ -17,6 +19,7 @@ async function getLinkedAccounts() {
 }
 
 export default function ProfilePage() {
+  const { data: session, status } = useSession()
   const [user, setUser] = useState<any>(null)
   const [linkedAccounts, setLinkedAccounts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +42,17 @@ export default function ProfilePage() {
   const [passwordMessageType, setPasswordMessageType] = useState<'success' | 'error'>('success')
 
   useEffect(() => {
-    async function loadUser() {
+    if (status === 'unauthenticated') {
+      redirect("/auth/signin")
+    }
+
+    if (status === 'authenticated') {
+      loadUser()
+    }
+  }, [status])
+
+  const loadUser = async () => {
+    try {
       const userData = await getUser('current')
       if (userData) {
         setUser(userData)
@@ -52,10 +65,12 @@ export default function ProfilePage() {
       }
       const accounts = await getLinkedAccounts()
       setLinkedAccounts(accounts)
+    } catch (error) {
+      console.error('Error loading user data:', error)
+    } finally {
       setLoading(false)
     }
-    loadUser()
-  }, [])
+  }
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
