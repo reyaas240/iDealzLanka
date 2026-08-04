@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react"
+import { signOut } from "next-auth/react"
 import Logo from "@/components/Logo"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeSwitcher from "@/components/ThemeSwitcher"
@@ -13,6 +14,10 @@ interface AdminHeaderProps {
 export default function AdminHeader({ userName }: AdminHeaderProps) {
   const { t } = useLanguage()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/', redirect: true })
+  }
 
   return (
     <>
@@ -32,9 +37,9 @@ export default function AdminHeader({ userName }: AdminHeaderProps) {
               <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{userName}</span>
               </div>
-              <a href="/api/auth/signout" className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+              <button onClick={handleSignOut} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
                 {t('nav.signOut')}
-              </a>
+              </button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -62,9 +67,9 @@ export default function AdminHeader({ userName }: AdminHeaderProps) {
               <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{userName}</span>
               </div>
-              <a href="/api/auth/signout" className="block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-center">
+              <button onClick={handleSignOut} className="block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-center">
                 {t('nav.signOut')}
-              </a>
+              </button>
             </div>
           )}
         </div>
