@@ -78,6 +78,18 @@ export async function POST(
       receiptUrl = `/uploads/receipts/${filename}`
     }
 
+    // Check if transaction ID already exists
+    const existingTransfer = await prisma.bankTransfer.findFirst({
+      where: { transactionId }
+    })
+
+    if (existingTransfer) {
+      return NextResponse.json(
+        { error: "This transaction ID has already been used for another order. Please check your bank statement for a different transaction ID." },
+        { status: 400 }
+      )
+    }
+
     // Create bank transfer record
     await prisma.bankTransfer.create({
       data: {
