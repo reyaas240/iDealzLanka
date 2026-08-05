@@ -27,6 +27,12 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
   const [success, setSuccess] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<string | null>(null)
   const [oauthSettings, setOAuthSettings] = useState<any[]>([])
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpVerified, setOtpVerified] = useState(false)
+  const [otpCode, setOtpCode] = useState("")
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [verifyOtpLoading, setVerifyOtpLoading] = useState(false)
+  const [tempUserId, setTempUserId] = useState("")
 
   useEffect(() => {
     if (isOpen) {
@@ -46,6 +52,67 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
       }
     } catch (error) {
       console.error('Failed to fetch OAuth settings:', error)
+    }
+  }
+
+  const handleSendOTP = async () => {
+    if (!formData.email) {
+      setError("Email is required")
+      return
+    }
+
+    setOtpLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, forSignup: true }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send OTP")
+      }
+
+      setOtpSent(true)
+      setTempUserId(data.tempUserId)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const handleVerifyOTP = async () => {
+    if (!otpCode) {
+      setError("OTP code is required")
+      return
+    }
+
+    setVerifyOtpLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, code: otpCode, tempUserId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to verify OTP")
+      }
+
+      setOtpVerified(true)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setVerifyOtpLoading(false)
     }
   }
 
@@ -87,6 +154,8 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
           mobile: formData.mobile,
           password: formData.password,
           country: formData.country,
+          otp: otpCode,
+          tempUserId,
         }),
       })
 
@@ -271,16 +340,64 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email Address
             </label>
-            <input
-              type="email"
-              id="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-              placeholder="Enter your email"
-              required
-            />
+            <div className="flex gap-2">
+              <input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={otpVerified}
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
+                placeholder="Enter your email"
+                required
+              />
+              {!otpVerified && (
+                <button
+                  type="button"
+                  onClick={handleSendOTP}
+                  disabled={otpLoading || !formData.email}
+                  className="px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {otpLoading ? "Sending..." : otpSent ? "Resend" : "Send OTP"}
+                </button>
+              )}
+            </div>
           </div>
+
+          {otpSent && !otpVerified && (
+            <div>
+              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Verification Code
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  id="otp"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyOTP}
+                  disabled={verifyOtpLoading || otpCode.length !== 6}
+                  className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {verifyOtpLoading ? "Verifying..." : "Verify"}
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Check your email for the verification code</p>
+            </div>
+          )}
+
+          {otpVerified && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg">
+              ✓ Email verified successfully
+            </div>
+          )}
 
           <div>
             <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -346,7 +463,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !otpVerified}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {loading ? "Creating Account..." : "Create Account"}
