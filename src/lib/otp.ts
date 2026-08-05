@@ -2,6 +2,8 @@ import { prisma } from "./db"
 import { sendOTPEmail } from "./email"
 import twilio from "twilio"
 
+console.log('otp.ts loaded, prisma available:', !!prisma)
+
 // Initialize services only if API keys are available
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN 
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
@@ -11,14 +13,22 @@ export async function generateOTP(userId: string, type: "EMAIL" | "MOBILE"): Pro
   const code = Math.floor(100000 + Math.random() * 900000).toString()
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-  await prisma.otp.create({
-    data: {
-      userId,
-      code,
-      type,
-      expiresAt,
-    },
-  })
+  console.log('generateOTP called with:', { userId, type, code, expiresAt })
+
+  try {
+    const otp = await prisma.otp.create({
+      data: {
+        userId,
+        code,
+        type,
+        expiresAt,
+      },
+    })
+    console.log('OTP created in database:', otp)
+  } catch (error) {
+    console.error('Error creating OTP in database:', error)
+    throw error
+  }
 
   return code
 }
