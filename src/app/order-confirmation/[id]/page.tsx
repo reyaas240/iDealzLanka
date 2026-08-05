@@ -40,32 +40,32 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
               Thank you for your order. Your order has been received and is pending approval.
             </p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 text-left">
-              <h2 className="text-lg font-semibold text-blue-900 mb-4">Order Details</h2>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-8 text-left">
+              <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">Order Details</h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Order ID:</span>
-                  <span className="font-mono font-semibold">{order.id}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Order ID:</span>
+                  <span className="font-mono font-semibold text-gray-900 dark:text-white">{order.id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Product:</span>
-                  <span className="font-semibold">{order.product.name}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Product:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{order.product.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Quantity:</span>
-                  <span className="font-semibold">{order.quantity}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Quantity:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{order.quantity}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Total:</span>
-                  <span className="font-semibold">{order.currency} {Number(order.total).toLocaleString()}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Total:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{order.currency} {Number(order.total).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Payment Method:</span>
-                  <span className="font-semibold">Bank Transfer</span>
+                  <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Bank Transfer</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Transaction ID:</span>
-                  <span className="font-semibold">{order.bankTransfer?.transactionId}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Transaction ID:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{order.bankTransfer?.transactionId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Status:</span>
@@ -82,9 +82,9 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
               </div>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8 text-left">
-              <h2 className="text-lg font-semibold text-yellow-900 mb-2">What happens next?</h2>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-yellow-800">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 mb-8 text-left">
+              <h2 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100 mb-2">What happens next?</h2>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
                 <li>Our team will verify your bank transfer receipt</li>
                 <li>Once approved, your QR coupons will be generated</li>
                 <li>You will receive an email with your downloadable QR coupons</li>
@@ -101,7 +101,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
               </Link>
               <Link
                 href="/"
-                className="block w-full px-6 py-3 border border-gray-300 text-gray-700 text-center rounded-lg hover:bg-gray-50 transition"
+                className="block w-full px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-center rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
               >
                 Return to Home
               </Link>
