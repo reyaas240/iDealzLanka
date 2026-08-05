@@ -227,7 +227,8 @@ export default function CheckoutPage() {
       router.push(`/order-confirmation/${data.orderId}`)
     } catch (error) {
       console.error('Error submitting order:', error)
-      setErrors({ ...errors, submit: 'Failed to submit order. Please try again.' })
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit order. Please try again.'
+      setErrors({ ...errors, submit: errorMessage })
     } finally {
       setSubmitting(false)
     }
