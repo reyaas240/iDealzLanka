@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { generateCouponsForOrder } from "@/lib/qrcode"
-import { sendOrderConfirmationEmail } from "@/lib/email"
+import { sendOrderApprovalEmail } from "@/lib/email"
 
 export async function PATCH(
   request: NextRequest,
@@ -82,14 +82,13 @@ export async function PATCH(
 
       // Send email with coupons
       if (updatedOrder && updatedOrder.user.email) {
-        await sendOrderConfirmationEmail(
+        await sendOrderApprovalEmail(
           updatedOrder.user.email,
           {
             order: updatedOrder,
             product: updatedOrder.product,
             coupons: updatedOrder.coupons
-          },
-          true
+          }
         )
       }
     } else {

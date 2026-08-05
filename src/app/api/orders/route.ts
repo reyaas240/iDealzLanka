@@ -208,8 +208,9 @@ export async function POST(request: NextRequest) {
       })
 
       // Create bank transfer record only if not skipping payment
+      let bankTransferData = null
       if (!skipPayment && receiptUrl && transactionId) {
-        await prisma.bankTransfer.create({
+        const bankTransfer = await prisma.bankTransfer.create({
           data: {
             orderId: order.id,
             receiptUrl,
@@ -217,6 +218,7 @@ export async function POST(request: NextRequest) {
             status: "PENDING"
           }
         })
+        bankTransferData = bankTransfer
       }
 
       // Update product sold items
@@ -238,7 +240,8 @@ export async function POST(request: NextRequest) {
           {
             order,
             product,
-            coupons: []
+            coupons: [],
+            bankTransfer: bankTransferData
           },
           false
         )

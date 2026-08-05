@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+public/uploads/qrcodes/CRB-6Q3SCC-2883.png
+public/uploads/qrcodes/CRB-6YRC38-2883.png
+public/uploads/qrcodes/CRB-793GNZ-2883.png
+public/uploads/qrcodes/CRB-MUF99E-2883.png
+public/uploads/receipts/receipt-1785894681260-blob
+public/uploads/receipts/receipt-1785894980493-coupon-EBC1-VPGTA7-3290.png
