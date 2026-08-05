@@ -31,12 +31,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Mark OTP as used
-    await prisma.otp.update({
-      where: { id: otp.id },
-      data: { used: true },
-    })
-
+    // Don't mark OTP as used here - it will be marked as used during account creation
     return NextResponse.json({ 
       success: true, 
       message: "OTP verified successfully" 
