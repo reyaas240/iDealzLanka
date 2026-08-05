@@ -1,26 +1,54 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
-import { sendOTP } from "@/lib/otp"
+import { generateOTP, sendOTPByEmail } from "@/lib/otp"
 
 export async function POST(request: NextRequest) {
   try {
-    const { identifier } = await request.json()
+    const { email, forSignup = false } = await request.json()
 
-    if (!identifier) {
+    if (!email) {
       return NextResponse.json(
-        { error: "Identifier is required" },
+        { error: "Email is required" },
         { status: 400 }
       )
     }
 
-    // Check if user exists
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: identifier },
-          { mobile: identifier }
-        ]
+    // For signup: check if email already exists
+    if (forSignup) {
+      const existingUser = await prisma.user.findFirst({
+        where: { email }
+      })
+
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "User with this email already exists" },
+          { status: 409 }
+        )
       }
+
+      // Generate OTP with a temporary user ID (will be replaced during signup)
+      // Use email as temporary identifier
+      const tempUserId = `temp_${email}_${Date.now()}`
+      const otp = await generateOTP(tempUserId, "EMAIL")
+      
+      // Send OTP via email
+      try {
+        await sendOTPByEmail(email, otp)
+      } catch (error) {
+        console.error("Failed to send OTP email:", error)
+        // Continue anyway - OTP is stored in database
+      }
+
+      return NextResponse.json({ 
+        success: true, 
+        message: "OTP sent to your email",
+        tempUserId 
+      })
+    }
+
+    // For existing users (password reset, etc.)
+    const user = await prisma.user.findFirst({
+      where: { email }
     })
 
     if (!user) {
@@ -30,9 +58,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Determine type and send OTP
-    const type = identifier.includes("@") ? "EMAIL" : "MOBILE"
-    await sendOTP(identifier, type)
+    const type = "EMAIL"
+    const otp = await generateOTP(user.id, type)
+    await sendOTPByEmail(email, otp)
 
     return NextResponse.json({ success: true })
   } catch (error) {

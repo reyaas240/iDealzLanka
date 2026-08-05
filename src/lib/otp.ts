@@ -1,9 +1,8 @@
 import { prisma } from "./db"
-import { Resend } from "resend"
+import { sendOTPEmail } from "./email"
 import twilio from "twilio"
 
 // Initialize services only if API keys are available
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN 
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
   : null
@@ -25,24 +24,10 @@ export async function generateOTP(userId: string, type: "EMAIL" | "MOBILE"): Pro
 }
 
 export async function sendOTPByEmail(email: string, code: string): Promise<void> {
-  if (!resend) {
-    console.log("Resend API key not configured. OTP code:", code)
-    return // Don't throw error, just log the code for development
-  }
-
   try {
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "noreply@idealsrilanka.com",
-      to: email,
-      subject: "Your Verification Code",
-      html: `
-        <h1>Your Verification Code</h1>
-        <p>Your verification code is: <strong>${code}</strong></p>
-        <p>This code will expire in 10 minutes.</p>
-      `,
-    })
+    await sendOTPEmail(email, code)
   } catch (error) {
-    console.error("Failed to send email OTP:", error)
+    console.error("Failed to send OTP email:", error)
     throw new Error("Failed to send OTP via email")
   }
 }
