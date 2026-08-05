@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     // Verify OTP
     const otpRecord = await prisma.otp.findFirst({
       where: {
-        email,
+        email: email,
         code: otp,
         used: false,
         expiresAt: {

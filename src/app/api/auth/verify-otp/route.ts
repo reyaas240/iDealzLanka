@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     // For signup verification (using email)
     const otp = await prisma.otp.findFirst({
       where: {
-        email,
-        code,
+        email: email,
+        code: code,
         used: false,
         expiresAt: {
           gt: new Date(),
