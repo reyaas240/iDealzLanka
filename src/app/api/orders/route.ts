@@ -235,16 +235,25 @@ export async function POST(request: NextRequest) {
 
       // Send order confirmation email without coupons
       if (user.email) {
-        await sendOrderConfirmationEmail(
-          user.email,
-          {
-            order,
-            product,
-            coupons: [],
-            bankTransfer: bankTransferData
-          },
-          false
-        )
+        console.log('Attempting to send order confirmation email to:', user.email)
+        try {
+          await sendOrderConfirmationEmail(
+            user.email,
+            {
+              order,
+              product,
+              coupons: [],
+              bankTransfer: bankTransferData
+            },
+            false
+          )
+          console.log('Order confirmation email sent successfully')
+        } catch (emailError) {
+          console.error('Failed to send order confirmation email:', emailError)
+          // Don't fail the order creation if email fails
+        }
+      } else {
+        console.warn('User has no email address, skipping order confirmation email')
       }
     }
 

@@ -14,6 +14,13 @@ function getResendClient() {
 
 function getSMTPTransporter() {
   if (!smtpTransporter && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+    console.log('Creating SMTP transporter:', {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      user: process.env.SMTP_USER,
+      secure: parseInt(process.env.SMTP_PORT || "587") === 465
+    })
+    
     smtpTransporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || "587"),
@@ -25,6 +32,16 @@ function getSMTPTransporter() {
       tls: {
         rejectUnauthorized: false, // Allow self-signed certificates if needed
       },
+      debug: process.env.NODE_ENV === 'development', // Enable debug logging in development
+    })
+    
+    // Verify connection
+    smtpTransporter.verify((error, success) => {
+      if (error) {
+        console.error('SMTP connection verification failed:', error)
+      } else {
+        console.log('SMTP server is ready to send emails')
+      }
     })
   }
   return smtpTransporter
@@ -42,8 +59,8 @@ async function getLogoUrl(): Promise<string | null> {
 async function sendEmailViaSMTP(to: string, subject: string, html: string, text: string) {
   const transporter = getSMTPTransporter()
   if (!transporter) {
-    console.warn('SMTP not configured, skipping email')
-    return
+    console.error('SMTP not configured - missing SMTP_HOST, SMTP_USER, or SMTP_PASSWORD')
+    throw new Error('SMTP not configured')
   }
 
   const fromEmail = process.env.SMTP_FROM_EMAIL || "noreply@idealio.lanka"
@@ -51,58 +68,78 @@ async function sendEmailViaSMTP(to: string, subject: string, html: string, text:
   const replyTo = process.env.SMTP_REPLY_TO || fromEmail
   const unsubscribeUrl = `${process.env.NEXTAUTH_URL}/unsubscribe`
 
-  await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
-    to,
-    replyTo,
-    subject,
-    html,
-    text,
-    headers: {
-      'X-Priority': '3',
-      'X-Mailer': 'iDealioLanka',
-      'List-Unsubscribe': `<mailto:${fromEmail}?subject=unsubscribe>, <${unsubscribeUrl}>`,
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    },
-  })
+  console.log('Attempting to send email via SMTP:', { to, subject, fromEmail })
+  
+  try {
+    const info = await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to,
+      replyTo,
+      subject,
+      html,
+      text,
+      headers: {
+        'X-Priority': '3',
+        'X-Mailer': 'iDealioLanka',
+        'List-Unsubscribe': `<mailto:${fromEmail}?subject=unsubscribe>, <${unsubscribeUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
+    })
+    console.log('Email sent successfully via SMTP:', info.messageId)
+  } catch (error) {
+    console.error('SMTP send failed:', error)
+    throw error
+  }
 }
 
 async function sendEmailViaResend(to: string, subject: string, html: string, text: string) {
   const client = getResendClient()
   if (!client) {
-    console.warn('Resend API key not configured, skipping email')
-    return
+    console.error('Resend API key not configured')
+    throw new Error('Resend not configured')
   }
 
   const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@idealio.lanka"
   const replyTo = process.env.RESEND_REPLY_TO || fromEmail
   const unsubscribeUrl = `${process.env.NEXTAUTH_URL}/unsubscribe`
 
-  await client.emails.send({
-    from: fromEmail,
-    to,
-    replyTo,
-    subject,
-    html,
-    text,
-    headers: {
-      'List-Unsubscribe': `<mailto:${fromEmail}?subject=unsubscribe>, <${unsubscribeUrl}>`,
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    },
-  })
+  console.log('Attempting to send email via Resend:', { to, subject, fromEmail })
+  
+  try {
+    const result = await client.emails.send({
+      from: fromEmail,
+      to,
+      replyTo,
+      subject,
+      html,
+      text,
+      headers: {
+        'List-Unsubscribe': `<mailto:${fromEmail}?subject=unsubscribe>, <${unsubscribeUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
+    })
+    console.log('Email sent successfully via Resend:', result)
+  } catch (error) {
+    console.error('Resend send failed:', error)
+    throw error
+  }
 }
 
 async function sendEmail(to: string, subject: string, html: string, text: string) {
+  console.log('sendEmail called:', { to, subject, hasSMTP: !!process.env.SMTP_HOST, hasResend: !!process.env.RESEND_API_KEY })
+  
   // Try SMTP first, fallback to Resend
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER) {
       await sendEmailViaSMTP(to, subject, html, text)
-    } else {
+    } else if (process.env.RESEND_API_KEY) {
       await sendEmailViaResend(to, subject, html, text)
+    } else {
+      throw new Error('No email service configured (SMTP or Resend)')
     }
   } catch (error) {
     console.error("Failed to send email:", error)
-    throw new Error("Failed to send email")
+    throw new Error("Failed to send email: " + (error as Error).message)
   }
 }
 
