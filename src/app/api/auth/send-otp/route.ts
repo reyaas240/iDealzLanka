@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
 
       // Generate OTP with a temporary user ID (will be replaced during signup)
       // Use email as temporary identifier
-      const tempUserId = `temp_${email}_${Date.now()}`
-      console.log('Generating OTP for tempUserId:', tempUserId)
-      const otp = await generateOTP(tempUserId, "EMAIL")
+      const tempUserId = null // We'll use email field instead
+      console.log('Generating OTP for email:', email)
+      const otp = await generateOTP(tempUserId, "EMAIL", email)
       console.log('OTP generated:', otp)
       
       // Send OTP via email
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         success: true, 
         message: "OTP sent to your email",
-        tempUserId 
+        email 
       })
     }
 

@@ -9,16 +9,17 @@ const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_T
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
   : null
 
-export async function generateOTP(userId: string, type: "EMAIL" | "MOBILE"): Promise<string> {
+export async function generateOTP(userId: string | null | undefined, type: "EMAIL" | "MOBILE", email?: string): Promise<string> {
   const code = Math.floor(100000 + Math.random() * 900000).toString()
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-  console.log('generateOTP called with:', { userId, type, code, expiresAt })
+  console.log('generateOTP called with:', { userId, type, email, code, expiresAt })
 
   try {
     const otp = await prisma.otp.create({
       data: {
-        userId,
+        userId: userId || undefined,
+        email,
         code,
         type,
         expiresAt,

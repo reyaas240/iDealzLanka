@@ -4,7 +4,7 @@ import * as bcrypt from "bcryptjs"
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, mobile, password, country, otp, tempUserId } = await request.json()
+    const { name, email, mobile, password, country, otp } = await request.json()
 
     if (!name || !email || !mobile || !password) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!otp || !tempUserId) {
+    if (!otp) {
       return NextResponse.json(
         { error: "OTP verification is required" },
         { status: 400 }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     // Verify OTP
     const otpRecord = await prisma.otp.findFirst({
       where: {
-        userId: tempUserId,
+        email,
         code: otp,
         used: false,
         expiresAt: {

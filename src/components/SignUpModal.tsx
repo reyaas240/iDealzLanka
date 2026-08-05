@@ -32,7 +32,6 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
   const [otpCode, setOtpCode] = useState("")
   const [otpLoading, setOtpLoading] = useState(false)
   const [verifyOtpLoading, setVerifyOtpLoading] = useState(false)
-  const [tempUserId, setTempUserId] = useState("")
 
   useEffect(() => {
     if (isOpen) {
@@ -78,7 +77,6 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
       }
 
       setOtpSent(true)
-      setTempUserId(data.tempUserId)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -99,7 +97,7 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
       const response = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, code: otpCode, tempUserId }),
+        body: JSON.stringify({ email: formData.email, code: otpCode }),
       })
 
       const data = await response.json()
@@ -155,7 +153,6 @@ export default function SignUpModal({ isOpen, onClose, onSwitchToSignIn, onSignU
           password: formData.password,
           country: formData.country,
           otp: otpCode,
-          tempUserId,
         }),
       })
 

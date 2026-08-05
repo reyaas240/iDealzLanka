@@ -142,8 +142,9 @@ model Winner {
 
 model Otp {
   id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  email     String?  // For signup before user is created
   code      String
   type      OtpType
   expiresAt DateTime

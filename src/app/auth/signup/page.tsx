@@ -25,7 +25,6 @@ export default function SignUpPage() {
   const [otpCode, setOtpCode] = useState("")
   const [otpLoading, setOtpLoading] = useState(false)
   const [verifyOtpLoading, setVerifyOtpLoading] = useState(false)
-  const [tempUserId, setTempUserId] = useState("")
 
   useEffect(() => {
     fetchOAuthSettings()
@@ -69,7 +68,6 @@ export default function SignUpPage() {
       }
 
       setOtpSent(true)
-      setTempUserId(data.tempUserId)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -90,7 +88,7 @@ export default function SignUpPage() {
       const response = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, code: otpCode, tempUserId }),
+        body: JSON.stringify({ email: formData.email, code: otpCode }),
       })
 
       const data = await response.json()
@@ -137,7 +135,6 @@ export default function SignUpPage() {
           password: formData.password,
           country: formData.country,
           otp: otpCode,
-          tempUserId,
         }),
       })
 
