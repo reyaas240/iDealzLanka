@@ -93,10 +93,10 @@ export async function sendOrderConfirmationEmail(
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           ${logoUrl ? `
             <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${logoUrl}" alt="iDealzSrilanka Logo" style="max-height: 60px; width: auto;" />
+              <img src="${logoUrl}" alt="iDealioLanka Logo" style="max-height: 60px; width: auto;" />
             </div>
           ` : `
-            <h1 style="color: #2563eb; text-align: center;">iDealzSrilanka</h1>
+            <h1 style="color: #2563eb; text-align: center;">iDealioLanka</h1>
           `}
           <h2 style="color: #1e40af; text-align: center;">Order Confirmation</h2>
           
@@ -144,7 +144,7 @@ export async function sendOrderConfirmationEmail(
           `}
 
           <p style="color: #6b7280; font-size: 14px;">
-            Thank you for supporting iDealzSrilanka!
+            Thank you for supporting iDealioLanka!
           </p>
         </div>
       `
@@ -172,10 +172,10 @@ export async function sendWinnerNotificationEmail(
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           ${logoUrl ? `
             <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${logoUrl}" alt="iDealzSrilanka Logo" style="max-height: 60px; width: auto;" />
+              <img src="${logoUrl}" alt="iDealioLanka Logo" style="max-height: 60px; width: auto;" />
             </div>
           ` : `
-            <h1 style="color: #2563eb; text-align: center;">iDealzSrilanka</h1>
+            <h1 style="color: #2563eb; text-align: center;">iDealioLanka</h1>
           `}
           
           <div style="background: #dbeafe; padding: 30px; border-radius: 8px; margin: 20px 0; text-align: center;">
@@ -195,7 +195,7 @@ export async function sendWinnerNotificationEmail(
           </p>
           
           <p style="color: #6b7280; font-size: 14px;">
-            Thank you for participating in iDealzSrilanka!
+            Thank you for participating in iDealioLanka!
           </p>
         </div>
       `
@@ -215,10 +215,10 @@ export async function sendOTPEmail(email: string, code: string): Promise<void> {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           ${logoUrl ? `
             <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${logoUrl}" alt="iDealzSrilanka Logo" style="max-height: 60px; width: auto;" />
+              <img src="${logoUrl}" alt="iDealioLanka Logo" style="max-height: 60px; width: auto;" />
             </div>
           ` : `
-            <h1 style="color: #2563eb; text-align: center;">iDealzSrilanka</h1>
+            <h1 style="color: #2563eb; text-align: center;">iDealioLanka</h1>
           `}
           <h2 style="color: #1e40af;">Your Verification Code</h2>
           
@@ -256,10 +256,10 @@ export async function sendOrderApprovalEmail(
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           ${logoUrl ? `
             <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${logoUrl}" alt="iDealzSrilanka Logo" style="max-height: 60px; width: auto;" />
+              <img src="${logoUrl}" alt="iDealioLanka Logo" style="max-height: 60px; width: auto;" />
             </div>
           ` : `
-            <h1 style="color: #2563eb; text-align: center;">iDealzSrilanka</h1>
+            <h1 style="color: #2563eb; text-align: center;">iDealioLanka</h1>
           `}
           <h2 style="color: #1e40af; text-align: center;">Order Approved! 🎉</h2>
           
@@ -286,7 +286,7 @@ export async function sendOrderApprovalEmail(
           </div>
 
           <p style="color: #6b7280; font-size: 14px;">
-            Thank you for supporting iDealzSrilanka!
+            Thank you for supporting iDealioLanka!
           </p>
         </div>
       `

@@ -33,15 +33,15 @@ export default function Logo({ className = '', showText = true, asLink = true, h
   const logoContent = (
     <div className={`flex items-center gap-2 ${className}`}>
       {loading ? (
-        <div className="text-2xl font-bold text-blue-600">iDealzSrilanka</div>
+        <div className="text-2xl font-bold text-blue-600">iDealioLanka</div>
       ) : logoUrl ? (
         <img 
           src={logoUrl} 
-          alt="iDealzSrilanka Logo" 
+          alt="iDealioLanka Logo" 
           className="h-16 w-auto object-contain"
         />
       ) : (
-        <div className="text-2xl font-bold text-blue-600">iDealzSrilanka</div>
+        <div className="text-2xl font-bold text-blue-600">iDealioLanka</div>
       )}
     </div>
   )

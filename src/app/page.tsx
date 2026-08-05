@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Header from "@/components/Header"
-import Logo from "@/components/Logo"
+import Footer from "@/components/Footer"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useState, useEffect } from "react"
 
@@ -76,7 +76,7 @@ export default function Home() {
       <section className="bg-yellow-50 border-y border-yellow-200">
         <div className="container mx-auto px-4 py-4">
           <p className="text-center text-yellow-800 font-medium">
-            📢 Welcome to iDealzSrilanka! Your first draw is coming soon. Stay tuned for exciting prizes!
+            📢 Welcome to iDealioLanka! Your first draw is coming soon. Stay tuned for exciting prizes!
           </p>
         </div>
       </section>
@@ -143,43 +143,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-black text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <Logo showText={true} asLink={false} className="mb-4" />
-              <p className="text-gray-400">{t('footer.tagline')}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">{t('footer.quickLinks')}</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/products" className="hover:text-white transition">{t('nav.products')}</Link></li>
-                <li><Link href="/about" className="hover:text-white transition">{t('nav.about')}</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition">{t('nav.contact')}</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">{t('footer.legal')}</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/terms" className="hover:text-white transition">Terms & Conditions</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">{t('nav.contact')}</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Email: info@idealsrilanka.com</li>
-                <li>Phone: +94 11 123 4567</li>
-                <li>Colombo, Sri Lanka</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 iDealzSrilanka. {t('footer.rights')}</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

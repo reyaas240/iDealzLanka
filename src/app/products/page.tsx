@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Header from "@/components/Header"
-import Logo from "@/components/Logo"
+import Footer from "@/components/Footer"
 
 async function getProducts() {
   const products = await prisma.product.findMany({
@@ -82,43 +82,7 @@ export default async function ProductsPage() {
         )}
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 mt-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <Logo showText={true} asLink={false} className="mb-4" />
-              <p className="text-gray-400">Support charity, win prizes, make a difference.</p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="/products" className="hover:text-white transition">Products</a></li>
-                <li><a href="/about" className="hover:text-white transition">About Us</a></li>
-                <li><a href="/contact" className="hover:text-white transition">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="/terms" className="hover:text-white transition">Terms & Conditions</a></li>
-                <li><a href="/privacy" className="hover:text-white transition">Privacy Policy</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Email: info@idealsrilanka.com</li>
-                <li>Phone: +94 11 123 4567</li>
-                <li>Colombo, Sri Lanka</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 iDealzSrilanka. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
