@@ -210,12 +210,14 @@ export default function CheckoutPage() {
       
       if (!response.ok) {
         console.error('Order API error:', responseText)
+        let errorMessage = 'Failed to create order'
         try {
           const error = JSON.parse(responseText)
-          throw new Error(error.error || 'Failed to create order')
-        } catch {
-          throw new Error('Failed to create order. Server returned non-JSON response.')
+          errorMessage = error.error || errorMessage
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
         }
+        throw new Error(errorMessage)
       }
 
       const data = JSON.parse(responseText)
