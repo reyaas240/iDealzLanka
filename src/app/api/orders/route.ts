@@ -210,6 +210,18 @@ export async function POST(request: NextRequest) {
       // Create bank transfer record only if not skipping payment
       let bankTransferData = null
       if (!skipPayment && receiptUrl && transactionId) {
+        // Check if transaction ID already exists
+        const existingTransfer = await prisma.bankTransfer.findFirst({
+          where: { transactionId }
+        })
+
+        if (existingTransfer) {
+          return NextResponse.json(
+            { error: "This transaction ID has already been used for another order. Please check your bank statement for a different transaction ID." },
+            { status: 400 }
+          )
+        }
+
         const bankTransfer = await prisma.bankTransfer.create({
           data: {
             orderId: order.id,

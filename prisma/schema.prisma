@@ -111,7 +111,7 @@ model BankTransfer {
   orderId      String              @unique
   order        Order               @relation(fields: [orderId], references: [id])
   receiptUrl   String
-  transactionId String
+  transactionId String             @unique
   status       BankTransferStatus @default(PENDING)
   adminNotes   String?
   reviewedAt   DateTime?
