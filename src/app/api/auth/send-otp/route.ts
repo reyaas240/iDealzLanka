@@ -29,11 +29,15 @@ export async function POST(request: NextRequest) {
       // Generate OTP with a temporary user ID (will be replaced during signup)
       // Use email as temporary identifier
       const tempUserId = `temp_${email}_${Date.now()}`
+      console.log('Generating OTP for tempUserId:', tempUserId)
       const otp = await generateOTP(tempUserId, "EMAIL")
+      console.log('OTP generated:', otp)
       
       // Send OTP via email
       try {
+        console.log('Attempting to send OTP to email:', email)
         await sendOTPByEmail(email, otp)
+        console.log('OTP sent successfully')
       } catch (error) {
         console.error("Failed to send OTP email:", error)
         // Continue anyway - OTP is stored in database

@@ -24,8 +24,11 @@ export async function generateOTP(userId: string, type: "EMAIL" | "MOBILE"): Pro
 }
 
 export async function sendOTPByEmail(email: string, code: string): Promise<void> {
+  console.log('sendOTPByEmail called with:', { email, code })
   try {
+    console.log('Calling sendOTPEmail...')
     await sendOTPEmail(email, code)
+    console.log('sendOTPEmail completed successfully')
   } catch (error) {
     console.error("Failed to send OTP email:", error)
     throw new Error("Failed to send OTP via email")
