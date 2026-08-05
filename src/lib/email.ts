@@ -17,10 +17,13 @@ function getSMTPTransporter() {
     smtpTransporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: false, // true for 465, false for other ports
+      secure: parseInt(process.env.SMTP_PORT || "587") === 465, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false, // Allow self-signed certificates if needed
       },
     })
   }
@@ -36,43 +39,66 @@ async function getLogoUrl(): Promise<string | null> {
   }
 }
 
-async function sendEmailViaSMTP(to: string, subject: string, html: string) {
+async function sendEmailViaSMTP(to: string, subject: string, html: string, text: string) {
   const transporter = getSMTPTransporter()
   if (!transporter) {
     console.warn('SMTP not configured, skipping email')
     return
   }
 
+  const fromEmail = process.env.SMTP_FROM_EMAIL || "noreply@idealio.lanka"
+  const fromName = process.env.SMTP_FROM_NAME || "iDealioLanka"
+  const replyTo = process.env.SMTP_REPLY_TO || fromEmail
+  const unsubscribeUrl = `${process.env.NEXTAUTH_URL}/unsubscribe`
+
   await transporter.sendMail({
-    from: `"${process.env.SMTP_FROM_NAME || "iDealz Lanka"}" <${process.env.SMTP_FROM_EMAIL}>`,
+    from: `"${fromName}" <${fromEmail}>`,
     to,
+    replyTo,
     subject,
     html,
+    text,
+    headers: {
+      'X-Priority': '3',
+      'X-Mailer': 'iDealioLanka',
+      'List-Unsubscribe': `<mailto:${fromEmail}?subject=unsubscribe>, <${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   })
 }
 
-async function sendEmailViaResend(to: string, subject: string, html: string) {
+async function sendEmailViaResend(to: string, subject: string, html: string, text: string) {
   const client = getResendClient()
   if (!client) {
     console.warn('Resend API key not configured, skipping email')
     return
   }
 
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@idealio.lanka"
+  const replyTo = process.env.RESEND_REPLY_TO || fromEmail
+  const unsubscribeUrl = `${process.env.NEXTAUTH_URL}/unsubscribe`
+
   await client.emails.send({
-    from: process.env.RESEND_FROM_EMAIL || "noreply@idealsrilanka.com",
+    from: fromEmail,
     to,
+    replyTo,
     subject,
     html,
+    text,
+    headers: {
+      'List-Unsubscribe': `<mailto:${fromEmail}?subject=unsubscribe>, <${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   })
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string, text: string) {
   // Try SMTP first, fallback to Resend
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-      await sendEmailViaSMTP(to, subject, html)
+      await sendEmailViaSMTP(to, subject, html, text)
     } else {
-      await sendEmailViaResend(to, subject, html)
+      await sendEmailViaResend(to, subject, html, text)
     }
   } catch (error) {
     console.error("Failed to send email:", error)
@@ -149,11 +175,37 @@ export async function sendOrderConfirmationEmail(
         </div>
       `
     
+    const text = `Order Confirmation
+
+Order ID: ${order.id}
+Product: ${product.name}
+Quantity: ${order.quantity}
+Total: ${order.currency} ${Number(order.total).toLocaleString()}
+Payment Method: ${order.paymentMethod}
+Payment Status: ${!includeCoupons ? (order.status === 'PENDING_PAYMENT' ? 'PENDING PAYMENT' : 'Pending Approval') : 'Paid'}
+
+${!includeCoupons && bankTransfer ? `Bank Transfer Details:
+Transaction ID: ${bankTransfer.transactionId}
+Status: ${bankTransfer.status}
+${bankTransfer.adminNotes ? `Admin Notes: ${bankTransfer.adminNotes}` : ''}
+
+` : ''}${includeCoupons ? `Your Coupons Are Ready!
+You have received ${coupons.length} coupon(s) for the draw.
+Log in to your dashboard to view and download your QR codes: ${process.env.NEXTAUTH_URL}/dashboard/coupons
+
+` : `Payment/Order Approval Pending
+Your order is being reviewed. Once your payment is approved, you will receive your coupons via email. If we cannot process your payment, your order will be cancelled within 24 hours.
+
+`}Thank you for supporting iDealioLanka!
+
+---
+To unsubscribe, visit: ${process.env.NEXTAUTH_URL}/unsubscribe`
+    
     const subject = includeCoupons 
       ? "Order Confirmed - Your Coupons Are Ready!" 
       : "Order Received - Awaiting Payment Approval"
     
-    await sendEmail(email, subject, html)
+    await sendEmail(email, subject, html, text)
   } catch (error) {
     console.error("Failed to send order confirmation email:", error)
     throw new Error("Failed to send email")
@@ -200,7 +252,20 @@ export async function sendWinnerNotificationEmail(
         </div>
       `
     
-    await sendEmail(email, "🎉 Congratulations! You're a Winner!", html)
+    const text = `🎉 Congratulations! You're a Winner!
+
+Product: ${product.name}
+Coupon Code: ${coupon.couponCode}
+Prize: ${prize}
+
+Our team will contact you shortly to arrange prize delivery.
+
+Thank you for participating in iDealioLanka!
+
+---
+To unsubscribe, visit: ${process.env.NEXTAUTH_URL}/unsubscribe`
+    
+    await sendEmail(email, "🎉 Congratulations! You're a Winner!", html, text)
   } catch (error) {
     console.error("Failed to send winner notification email:", error)
     throw new Error("Failed to send email")
@@ -237,7 +302,18 @@ export async function sendOTPEmail(email: string, code: string): Promise<void> {
         </div>
       `
     
-    await sendEmail(email, "Your Verification Code", html)
+    const text = `Your Verification Code
+
+Your verification code is: ${code}
+
+This code will expire in 10 minutes.
+
+If you didn't request this code, please ignore this email.
+
+---
+To unsubscribe, visit: ${process.env.NEXTAUTH_URL}/unsubscribe`
+    
+    await sendEmail(email, "Your Verification Code", html, text)
   } catch (error) {
     console.error("Failed to send OTP email:", error)
     throw new Error("Failed to send OTP email")
@@ -291,7 +367,25 @@ export async function sendOrderApprovalEmail(
         </div>
       `
     
-    await sendEmail(email, "Order Approved - Your Coupons Are Ready!", html)
+    const text = `Order Approved! 🎉
+
+Your payment has been approved! Your coupons are now ready for the draw.
+
+Order ID: ${order.id}
+Product: ${product.name}
+Quantity: ${order.quantity}
+Total: ${order.currency} ${Number(order.total).toLocaleString()}
+
+Your Coupons Are Ready!
+You have received ${coupons.length} coupon(s) for the draw.
+Log in to your dashboard to view and download your QR codes: ${process.env.NEXTAUTH_URL}/dashboard/coupons
+
+Thank you for supporting iDealioLanka!
+
+---
+To unsubscribe, visit: ${process.env.NEXTAUTH_URL}/unsubscribe`
+    
+    await sendEmail(email, "Order Approved - Your Coupons Are Ready!", html, text)
   } catch (error) {
     console.error("Failed to send order approval email:", error)
     throw new Error("Failed to send email")
