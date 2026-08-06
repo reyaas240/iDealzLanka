@@ -7,14 +7,19 @@ export default function PWAInstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showIOSInstructions, setShowIOSInstructions] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
     setIsIOS(isIOSDevice)
+    setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+    
+    console.log('PWAInstallButton - isIOS:', isIOSDevice, 'isMobile:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
 
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e)
+      console.log('PWAInstallButton - beforeinstallprompt event fired')
     }
 
     window.addEventListener("beforeinstallprompt", handler)
@@ -44,7 +49,7 @@ export default function PWAInstallButton() {
     setShowIOSInstructions(true)
   }
 
-  if (!deferredPrompt && !isIOS) return null
+  if (!isMobile) return null
 
   if (isIOS) {
     return (
