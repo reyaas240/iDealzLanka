@@ -40,7 +40,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
+      <body className="min-h-full flex flex-col">
         <Script
           src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
           strategy="afterInteractive"
@@ -55,8 +55,6 @@ export default function RootLayout({
             });
           `}
         </Script>
-      </head>
-      <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <LanguageProvider>
             <Providers>
