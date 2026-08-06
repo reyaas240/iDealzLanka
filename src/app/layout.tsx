@@ -18,14 +18,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "iDealz Srilanka",
+  title: "iDealio Srilanka",
   description: "Shop, Give back and Get rewarded.",
   manifest: "/manifest.json",
   themeColor: "#000000",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "iDealz Srilanka",
+    title: "iDealio Srilanka",
   },
 };
 
