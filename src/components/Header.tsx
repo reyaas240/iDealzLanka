@@ -9,7 +9,6 @@ import ThemeSwitcher from "@/components/ThemeSwitcher"
 import SignOutButton from "@/components/SignOutButton"
 import SignInModal from "@/components/SignInModal"
 import SignUpModal from "@/components/SignUpModal"
-import PWAInstallButton from "@/components/PWAInstallButton"
 
 interface HeaderProps {
   showNav?: boolean
@@ -43,7 +42,6 @@ export default function Header({ showNav = true, showCart = false }: HeaderProps
                   <LanguageSwitcher />
                   <ThemeSwitcher />
                 </div>
-                <PWAInstallButton />
                 {showCart && (
                   <Link href="/cart" className="px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition flex items-center gap-2">
                     🛒 Cart
